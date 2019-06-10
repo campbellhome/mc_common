@@ -1,8 +1,8 @@
 #define _HAS_EXCEPTIONS 0
 #define _ITERATOR_DEBUG_LEVEL 0
 
-#include "file_utils.h"
 #include "mc_preproc.h"
+#include "file_utils.h"
 #include "sdict.h"
 
 static void GenerateJsonHeader(const char *prefix, sb_t *srcDir)

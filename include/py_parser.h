@@ -28,8 +28,7 @@ typedef struct tag_pyParser {
 
 b32 py_parser_tick(pyParser *parser, sdicts *dicts);
 
-typedef struct tag_pyWriter
-{
+typedef struct tag_pyWriter {
 	u32 count;
 	u32 allocated;
 	s8 *data;

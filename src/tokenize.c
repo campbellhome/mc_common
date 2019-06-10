@@ -71,25 +71,25 @@ span_t tokenize(const char **bufferCursor, const char *delimiters)
 span_t tokenizeLine(span_t *cursor)
 {
 	span_t ret = { BB_EMPTY_INITIALIZER };
-	if (cursor && cursor->start) {
+	if(cursor && cursor->start) {
 		ret.start = cursor->start;
 		ret.end = ret.start;
-		while (ret.end <= cursor->end) {
-			if (*ret.end == '\n') {
+		while(ret.end <= cursor->end) {
+			if(*ret.end == '\n') {
 				break;
-			} else if (*ret.end == '\r' && !(ret.end < cursor->end && ret.end[1] == '\n')) {
+			} else if(*ret.end == '\r' && !(ret.end < cursor->end && ret.end[1] == '\n')) {
 				break;
 			} else {
 				++ret.end;
 			}
 		}
 
-		if (ret.end < cursor->end) {
+		if(ret.end < cursor->end) {
 			cursor->start = ret.end + 1;
 		} else {
 			cursor->start = NULL;
 		}
-		if (!cursor->start && ret.end - ret.start == 1) {
+		if(!cursor->start && ret.end - ret.start == 1) {
 			ret.start = ret.end = NULL;
 		}
 	}

@@ -9,8 +9,7 @@
 extern "C" {
 #endif
 
-typedef struct fileData_s
-{
+typedef struct fileData_s {
 	void *buffer;
 	uint32_t bufferSize;
 	uint8_t pad[4];

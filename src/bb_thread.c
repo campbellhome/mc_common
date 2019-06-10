@@ -22,7 +22,7 @@ bb_thread_handle_t bbthread_create(bb_thread_func func, void *arg)
 	    arg,  // arglist
 	    0,    // initflag - CREATE_SUSPENDED waits for ResumeThread
 	    NULL  // thrdaddr
-	);
+	    );
 	BB_ASSERT_MSG(thread != 0, "failed to spawn thread");
 	return thread;
 }
@@ -82,7 +82,7 @@ bb_thread_handle_t bbthread_create(bb_thread_func func, void *arg)
 	    &attr,   // attr
 	    func,    // start_routine
 	    arg      // arg
-	);
+	    );
 	return thread;
 }
 

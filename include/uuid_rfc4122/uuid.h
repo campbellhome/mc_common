@@ -28,7 +28,7 @@ void uuid_create_md5_from_name(
     rfc_uuid nsid,  /* UUID of the namespace */
     void *name,     /* the name from which to generate a UUID */
     int namelen     /* the length of the name */
-);
+    );
 
 #ifdef USE_SHA1
 /* uuid_create_sha1_from_name -- create a version 5 (SHA-1) UUID
@@ -39,7 +39,7 @@ void uuid_create_sha1_from_name(
     rfc_uuid nsid,  /* UUID of the namespace */
     void *name,     /* the name from which to generate a UUID */
     int namelen     /* the length of the name */
-);
+    );
 #endif // USE_SHA1
 
 /* uuid_compare --  Compare two UUID's "lexically" and return

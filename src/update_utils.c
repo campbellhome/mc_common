@@ -2,11 +2,11 @@
 // MIT license (see License.txt)
 
 #include "update_utils.h"
+#include "bb_wrap_dirent.h"
 #include "bbclient/bb_array.h"
 #include "bbclient/bb_file.h"
-#include "bb_wrap_dirent.h"
-#include "path_utils.h"
 #include "parson/parson.h"
+#include "path_utils.h"
 
 static int update_version_compare(const void *_a, const void *_b)
 {
