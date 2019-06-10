@@ -1,0 +1,15 @@
+[submodule "submodules/bbclient"]
+	path = submodules/bbclient
+	url = https://github.com/campbellhome/bbclient
+[submodule "submodules/dirent"]
+	path = submodules/dirent
+	url = https://github.com/tronkko/dirent
+[submodule "submodules/mmx"]
+	path = submodules/mmx
+	url = https://github.com/vurtun/mmx.git
+[submodule "submodules/parson"]
+	path = submodules/parson
+	url = https://github.com/kgabis/parson.git
+[submodule "submodules/stackwalker"]
+	path = submodules/stackwalker
+	url = https://github.com/JochenKalmbach/stackwalker
