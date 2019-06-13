@@ -1,8 +1,8 @@
 // Copyright (c) 2012-2019 Matt Campbell
 // MIT license (see License.txt)
 
-#include "exception_handler.h"
-#include "bb_defines.h"
+#include "mc_callstack/exception_handler.h"
+#include "bbclient/bb_defines.h"
 #include "common.h"
 
 #if BB_USING(BB_PLATFORM_WINDOWS)

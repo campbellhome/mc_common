@@ -21,6 +21,7 @@
 std::vector< enum_s > g_enums;
 std::vector< struct_s > g_structs;
 std::set< std::string > g_paths;
+bool g_bHeaderOnly;
 
 std::string lexer_token_string(const lexer_token &tok)
 {
@@ -352,7 +353,7 @@ void mm_lexer_scan_file(const char *text, lexer_size text_length, const char *pa
 			}
 		} else {
 			bool autovalidate = false;
-			bool headerOnly = false;
+			bool headerOnly = g_bHeaderOnly;
 			bool fromLoc = false;
 
 			while(1) {
@@ -520,6 +521,14 @@ int CALLBACK WinMain(_In_ HINSTANCE /*Instance*/, _In_opt_ HINSTANCE /*PrevInsta
 		} else if(!bb_strnicmp(arg, "-src=", 5)) {
 		} else if(!bb_strnicmp(arg, "-include=", 9)) {
 		} else if(!bb_stricmp(cmdline_argv(i), "-fonts")) {
+		} else if(!bb_strnicmp(arg, "-header=", 8)) {
+			sb_t scanDir = {};
+			sb_append(&scanDir, arg + 8);
+			path_resolve_inplace(&scanDir);
+			g_bHeaderOnly = true;
+			scanHeaders(&scanDir);
+			g_bHeaderOnly = false;
+			sb_reset(&scanDir);
 		} else {
 			sb_t scanDir = {};
 			sb_append(&scanDir, arg);

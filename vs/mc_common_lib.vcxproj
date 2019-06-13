@@ -100,6 +100,13 @@
     <ClCompile Include="..\src\dns_task.c" />
     <ClCompile Include="..\src\env_utils.c" />
     <ClCompile Include="..\src\filter.c" />
+    <ClCompile Include="..\src\json_utils.c" />
+    <ClCompile Include="..\src\mc_callstack\bug_reporter.c" />
+    <ClCompile Include="..\src\mc_callstack\callstack_utils.cpp">
+      <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Level4</WarningLevel>
+      <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Level4</WarningLevel>
+    </ClCompile>
+    <ClCompile Include="..\src\mc_callstack\exception_handler.c" />
     <ClCompile Include="..\src\md5_rfc1321\md5c.c" />
     <ClCompile Include="..\src\message_box.c" />
     <ClCompile Include="..\src\output.c" />
@@ -127,6 +134,10 @@
       <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5045;4232</DisableSpecificWarnings>
       <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5045;4232</DisableSpecificWarnings>
     </ClCompile>
+    <ClCompile Include="..\submodules\stackwalker\Main\StackWalker\StackWalker.cpp">
+      <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Level3</WarningLevel>
+      <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Level3</WarningLevel>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\include\appdata.h" />
@@ -140,6 +151,10 @@
     <ClInclude Include="..\include\env_utils.h" />
     <ClInclude Include="..\include\file_utils.h" />
     <ClInclude Include="..\include\filter.h" />
+    <ClInclude Include="..\include\json_utils.h" />
+    <ClInclude Include="..\include\mc_callstack\bug_reporter.h" />
+    <ClInclude Include="..\include\mc_callstack\callstack_utils.h" />
+    <ClInclude Include="..\include\mc_callstack\exception_handler.h" />
     <ClInclude Include="..\include\md5_rfc1321\global.h" />
     <ClInclude Include="..\include\md5_rfc1321\md5.h" />
     <ClInclude Include="..\include\message_box.h" />
@@ -164,6 +179,7 @@
     <ClInclude Include="..\include\uuid_rfc4122\uuid_struct.h" />
     <ClInclude Include="..\include\va.h" />
     <ClInclude Include="..\submodules\parson\parson.h" />
+    <ClInclude Include="..\submodules\stackwalker\Main\StackWalker\StackWalker.h" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="..\src\uuid_rfc4122\rfc4122.txt" />

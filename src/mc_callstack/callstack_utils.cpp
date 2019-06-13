@@ -1,13 +1,12 @@
 // Copyright (c) 2012-2019 Matt Campbell
 // MIT license (see License.txt)
 
-#include "callstack_utils.h"
-#include "bb_array.h"
-#include "bb_criticalsection.h"
-#include "bb_defines.h"
-#include "common.h"
+#include "mc_callstack/callstack_utils.h"
+#include "bbclient/bb_array.h"
+#include "bbclient/bb_criticalsection.h"
+#include "bbclient/bb_defines.h"
 BB_WARNING_PUSH(4820)
-#include "StackWalker/StackWalker.h"
+#include "stackwalker/Main/StackWalker/StackWalker.h"
 BB_WARNING_POP
 
 #if BB_USING(BB_PLATFORM_WINDOWS)

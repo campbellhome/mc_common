@@ -88,6 +88,21 @@
     <ClCompile Include="..\src\crt_leak_check.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\json_utils.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\mc_callstack\exception_handler.c">
+      <Filter>Source Files\mc_callstack</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\mc_callstack\bug_reporter.c">
+      <Filter>Source Files\mc_callstack</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\mc_callstack\callstack_utils.cpp">
+      <Filter>Source Files\mc_callstack</Filter>
+    </ClCompile>
+    <ClCompile Include="..\submodules\stackwalker\Main\StackWalker\StackWalker.cpp">
+      <Filter>Source Files\StackWalker</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\include\appdata.h">
@@ -195,6 +210,21 @@
     <ClInclude Include="..\include\crt_leak_check.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\include\json_utils.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\mc_callstack\callstack_utils.h">
+      <Filter>Header Files\mc_callstack</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\mc_callstack\exception_handler.h">
+      <Filter>Header Files\mc_callstack</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\mc_callstack\bug_reporter.h">
+      <Filter>Header Files\mc_callstack</Filter>
+    </ClInclude>
+    <ClInclude Include="..\submodules\stackwalker\Main\StackWalker\StackWalker.h">
+      <Filter>Header Files\StackWalker</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Text Include="..\src\uuid_rfc4122\rfc4122.txt">
@@ -228,6 +258,18 @@
     </Filter>
     <Filter Include="Source Files\parson">
       <UniqueIdentifier>{07d4400e-a654-4742-82c5-b1450b3b3a1f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\mc_callstack">
+      <UniqueIdentifier>{f36c266d-9bce-4de1-ad21-2a434ee43a13}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\mc_callstack">
+      <UniqueIdentifier>{57150b12-66de-4106-adc2-68f981ce42ec}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\StackWalker">
+      <UniqueIdentifier>{6197c0ea-3b19-459b-8462-784197e038f0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\StackWalker">
+      <UniqueIdentifier>{efda0b1b-d1f5-450a-ab1a-95ea5b965dfe}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>
