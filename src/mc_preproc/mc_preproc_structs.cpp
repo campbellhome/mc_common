@@ -2,6 +2,7 @@
 #define _ITERATOR_DEBUG_LEVEL 0
 
 #include "mc_preproc.h"
+
 #include "file_utils.h"
 #include "sdict.h"
 #include "va.h"
@@ -84,6 +85,8 @@ static void GenerateStructsHeader(const char *prefix, sb_t *srcDir)
 	sb_append(s, "#if defined(__cplusplus)\n");
 	sb_append(s, "} // extern \"C\"\n");
 	sb_append(s, "#endif\n");
+
+	sb_replace_all_inplace(s, "\n", "\r\n");
 
 	sb_t path;
 	sb_init(&path);
@@ -212,6 +215,9 @@ static void GenerateStructsSource(const char *prefix, sb_t *srcDir)
 		sb_append(s, "\treturn dst;\n");
 		sb_append(s, "}\n");
 	}
+
+	sb_replace_all_inplace(s, "\n", "\r\n");
+
 	sb_t path;
 	sb_init(&path);
 	sb_va(&path, "%s\\%sstructs_generated.c", sb_get(srcDir), prefix);

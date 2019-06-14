@@ -63,6 +63,8 @@ static void GenerateJsonHeader(const char *prefix, sb_t *srcDir)
 	sb_append(s, "} // extern \"C\"\n");
 	sb_append(s, "#endif\n");
 
+	sb_replace_all_inplace(s, "\n", "\r\n");
+
 	sb_t path;
 	sb_init(&path);
 	sb_va(&path, "%s\\%sjson_generated.h", sb_get(srcDir), prefix);
@@ -334,6 +336,9 @@ static void GenerateJsonSource(const char *prefix, sb_t *srcDir)
 		sb_append(s, "\n");
 	}
 	sb_append(s, "//////////////////////////////////////////////////////////////////////////\n");
+
+	sb_replace_all_inplace(s, "\n", "\r\n");
+
 	sb_t path;
 	sb_init(&path);
 	sb_va(&path, "%s\\%sjson_generated.c", sb_get(srcDir), prefix);

@@ -143,6 +143,38 @@ void sb_va_list_from_loc(const char *file, int line, sb_t *sb, const char *fmt, 
 	}
 }
 
+sb_t sb_replace_all_from_loc(const char *file, int line, const sb_t *src, const char *replaceThis, const char *replacement)
+{
+	sb_t outData;
+	sb_init(&outData);
+	sb_t *out = &outData;
+
+	if(src && replaceThis && replacement) {
+		size_t replacementLen = strlen(replaceThis);
+		const char *in = sb_get(src);
+		while(*in) {
+			char c = *in;
+			if(strncmp(in, replaceThis, replacementLen)) {
+				sb_append_char_from_loc(file, line, out, c);
+			} else {
+				sb_append_from_loc(file, line, out, replacement);
+			}
+			++in;
+		}
+	}
+
+	return outData;
+}
+
+void sb_replace_all_inplace_from_loc(const char *file, int line, sb_t *src, const char *replaceThis, const char *replacement)
+{
+	if(src) {
+		sb_t temp = sb_replace_all_from_loc(file, line, src, replaceThis, replacement);
+		sb_reset(src);
+		*src = temp;
+	}
+}
+
 void sbs_reset_from_loc(const char *file, int line, sbs_t *sbs)
 {
 	for(u32 i = 0; i < sbs->count; ++i) {
