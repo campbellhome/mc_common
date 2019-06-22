@@ -22,7 +22,9 @@ int fileData_writeIfChanged(const char *pathname, const char *tempPathname, file
 int file_delete(const char *pathname);
 
 int file_readable(const char *pathname);
-//FILETIME Win32_GetFileLastWriteTime( char *path );
+
+typedef struct _FILETIME FILETIME;
+int file_getTimestamps(const char *path, FILETIME *creationTime, FILETIME *accessTime, FILETIME *lastWriteTime);
 
 #if defined(__cplusplus)
 }

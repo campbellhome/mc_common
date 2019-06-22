@@ -97,6 +97,17 @@ b32 file_delete(const char *pathname)
 	return DeleteFileA(pathname);
 }
 
+int file_getTimestamps(const char *path, FILETIME *creationTime, FILETIME *accessTime, FILETIME *lastWriteTime)
+{
+	int ret = false;
+	HANDLE handle = CreateFileA(path, GENERIC_READ, FILE_SHARE_READ, 0, OPEN_EXISTING, 0, 0);
+	if(handle != INVALID_HANDLE_VALUE) {
+		ret = GetFileTime(handle, creationTime, accessTime, lastWriteTime) != 0;
+		CloseHandle(handle);
+	}
+	return ret;
+}
+
 #else // #if BB_USING(BB_PLATFORM_WINDOWS)
 
 #include "bb_wrap_stdio.h"
