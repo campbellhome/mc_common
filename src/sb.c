@@ -18,6 +18,13 @@ void sb_reset_from_loc(const char *file, int line, sb_t *sb)
 	bba_free_from_loc(file, line, *sb);
 }
 
+sb_t sb_from_c_string_from_loc(const char *file, int line, const char *src)
+{
+	sb_t dst = { BB_EMPTY_INITIALIZER };
+	sb_append_from_loc(file, line, &dst, src);
+	return dst;
+}
+
 sb_t sb_clone_from_loc(const char *file, int line, const sb_t *src)
 {
 	sb_t dst = { BB_EMPTY_INITIALIZER };

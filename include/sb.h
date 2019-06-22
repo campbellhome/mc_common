@@ -22,6 +22,7 @@ typedef struct sbs_s {
 	sb_t *data;
 } sbs_t;
 
+#define sb_from_c_string(src) sb_from_c_string_from_loc(__FILE__, __LINE__, src)
 #define sb_clone(sb) sb_clone_from_loc(__FILE__, __LINE__, sb)
 #define sb_reset(sb) sb_reset_from_loc(__FILE__, __LINE__, sb)
 #define sb_reserve(sb, len) sb_reserve_from_loc(__FILE__, __LINE__, sb, len)
@@ -38,6 +39,7 @@ typedef struct sbs_s {
 void sb_init(sb_t *sb);
 void sb_reset_from_loc(const char *file, int line, sb_t *sb);
 u32 sb_len(sb_t *sb);
+sb_t sb_from_c_string_from_loc(const char *file, int line, const char *src);
 sb_t sb_clone_from_loc(const char *file, int line, const sb_t *src);
 b32 sb_reserve_from_loc(const char *file, int line, sb_t *sb, u32 len);
 b32 sb_grow_from_loc(const char *file, int line, sb_t *sb, u32 len);
