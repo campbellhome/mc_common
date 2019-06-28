@@ -27,6 +27,7 @@ void bug_reporter_init(const char *project, const char *assignee)
 void bug_reporter_shutdown(void)
 {
 	sb_reset(&s_project);
+	sb_reset(&s_assignee);
 	bb_critical_section_shutdown(&s_bugReport_cs);
 }
 
