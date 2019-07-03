@@ -92,6 +92,9 @@ span_t tokenizeLine(span_t *cursor)
 		if(!cursor->start && ret.end - ret.start == 1) {
 			ret.start = ret.end = NULL;
 		}
+		if(ret.end > ret.start && ret.end[-1] == '\r') {
+			--ret.end;
+		}
 	}
 	return ret;
 }
