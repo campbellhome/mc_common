@@ -11,14 +11,6 @@
 #include "span.h"
 #include "va.h"
 
-static b32 s_bPySdictLogging;
-static b32 s_bPySdictEntryLogging;
-void py_enable_debugging(b32 sdictLogging, b32 sdictEntryLogging)
-{
-	s_bPySdictLogging = sdictLogging;
-	s_bPySdictEntryLogging = sdictEntryLogging;
-}
-
 #define parser_error(parser, msg) parser_error_((parser), (msg), __FILE__, __LINE__)
 static void parser_error_(pyParser *parser, const char *msg, const char *file, int line)
 {
@@ -62,7 +54,7 @@ static b32 parser_advance(pyParser *parser, u32 bytes)
 	return ret;
 }
 
-b32 py_parser_tick(pyParser *parser, sdicts *dicts)
+b32 py_parser_tick(pyParser *parser, sdicts *dicts, b32 bDebug)
 {
 	b32 ret = false;
 	if(parser->state == kParser_Error) {
@@ -73,7 +65,7 @@ b32 py_parser_tick(pyParser *parser, sdicts *dicts)
 				++parser->consumed;
 				parser->state = kParser_Idle;
 				ret = true;
-				if(s_bPySdictLogging) {
+				if(bDebug) {
 					BB_LOG("p4::parser::dict", "finished dict w/%u entries", parser->dict.count);
 				}
 				if(bba_add_noclear(*dicts, 1)) {
@@ -106,7 +98,7 @@ b32 py_parser_tick(pyParser *parser, sdicts *dicts)
 										sb_append_range(&entry.key, key, key + keyLen);
 										sb_init(&entry.value);
 										sb_append_range(&entry.value, val, val + valLen);
-										if(s_bPySdictEntryLogging) {
+										if(bDebug) {
 											BB_LOG("p4::parser::dict::entry", "parsed string key/value: %s = %s\n", sb_get(&entry.key), sb_get(&entry.value));
 										}
 										sdict_add(&parser->dict, &entry);
@@ -123,7 +115,7 @@ b32 py_parser_tick(pyParser *parser, sdicts *dicts)
 										sb_append_range(&entry.key, key, key + keyLen);
 										sb_init(&entry.value);
 										sb_va(&entry.value, "%u", n);
-										if(s_bPySdictEntryLogging) {
+										if(bDebug) {
 											BB_LOG("p4::parser::dict::entry", "parsed int key/value: %s = %s\n", sb_get(&entry.key), sb_get(&entry.value));
 										}
 										sdict_add(&parser->dict, &entry);

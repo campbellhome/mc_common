@@ -26,7 +26,7 @@ typedef struct tag_pyParser {
 	sdict_t dict;
 } pyParser;
 
-b32 py_parser_tick(pyParser *parser, sdicts *dicts);
+b32 py_parser_tick(pyParser *parser, sdicts *dicts, b32 bDebug);
 
 typedef struct tag_pyWriter {
 	u32 count;
@@ -36,7 +36,6 @@ typedef struct tag_pyWriter {
 
 b32 py_write_sdict(pyWriter *fd, sdict_t *sd);
 b32 py_write_sdicts(pyWriter *fd, sdicts *dicts);
-void py_enable_debugging(b32 sdictLogging, b32 sdictEntryLogging);
 
 #if defined(__cplusplus)
 }
