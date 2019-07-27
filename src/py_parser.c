@@ -11,13 +11,13 @@
 #include "span.h"
 #include "va.h"
 
-#if !defined FEATURE_PY_DEBUG_SDICT_ENTRIES
-#if defined(_DEBUG)
-#define FEATURE_PY_DEBUG_SDICT_ENTRIES BB_ON
-#else
-#define FEATURE_PY_DEBUG_SDICT_ENTRIES BB_OFF
-#endif
-#endif
+static b32 s_bPySdictLogging;
+static b32 s_bPySdictEntryLogging;
+void py_enable_debugging(b32 sdictLogging, b32 sdictEntryLogging)
+{
+	s_bPySdictLogging = sdictLogging;
+	s_bPySdictEntryLogging = sdictEntryLogging;
+}
 
 #define parser_error(parser, msg) parser_error_((parser), (msg), __FILE__, __LINE__)
 static void parser_error_(pyParser *parser, const char *msg, const char *file, int line)
@@ -73,9 +73,9 @@ b32 py_parser_tick(pyParser *parser, sdicts *dicts)
 				++parser->consumed;
 				parser->state = kParser_Idle;
 				ret = true;
-#if BB_USING(FEATURE_PY_DEBUG_SDICT_ENTRIES)
-				BB_LOG("p4::parser::dict", "finished dict w/%u entries", parser->dict.count);
-#endif
+				if(s_bPySdictLogging) {
+					BB_LOG("p4::parser::dict", "finished dict w/%u entries", parser->dict.count);
+				}
 				if(bba_add_noclear(*dicts, 1)) {
 					bba_last(*dicts) = parser->dict;
 					memset(&parser->dict, 0, sizeof(parser->dict));
@@ -106,9 +106,9 @@ b32 py_parser_tick(pyParser *parser, sdicts *dicts)
 										sb_append_range(&entry.key, key, key + keyLen);
 										sb_init(&entry.value);
 										sb_append_range(&entry.value, val, val + valLen);
-#if BB_USING(FEATURE_PY_DEBUG_SDICT_ENTRIES)
-										BB_LOG("p4::parser::dict::entry", "parsed string key/value: %s = %s\n", sb_get(&entry.key), sb_get(&entry.value));
-#endif
+										if(s_bPySdictEntryLogging) {
+											BB_LOG("p4::parser::dict::entry", "parsed string key/value: %s = %s\n", sb_get(&entry.key), sb_get(&entry.value));
+										}
 										sdict_add(&parser->dict, &entry);
 									}
 								}
@@ -123,9 +123,9 @@ b32 py_parser_tick(pyParser *parser, sdicts *dicts)
 										sb_append_range(&entry.key, key, key + keyLen);
 										sb_init(&entry.value);
 										sb_va(&entry.value, "%u", n);
-#if BB_USING(FEATURE_PY_DEBUG_SDICT_ENTRIES)
-										BB_LOG("p4::parser::dict::entry", "parsed int key/value: %s = %s\n", sb_get(&entry.key), sb_get(&entry.value));
-#endif
+										if(s_bPySdictEntryLogging) {
+											BB_LOG("p4::parser::dict::entry", "parsed int key/value: %s = %s\n", sb_get(&entry.key), sb_get(&entry.value));
+										}
 										sdict_add(&parser->dict, &entry);
 									}
 								}
