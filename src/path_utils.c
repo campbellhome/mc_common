@@ -36,15 +36,17 @@ sb_t path_resolve(sb_t src)
 				while(prevSep > path->data) {
 					--prevSep;
 					if(*prevSep == '\\') {
-						*prevSep = 0;
-						path->count = (u32)(prevSep - path->data) + 1;
-						sb_append_char(path, '\\');
-						in += 2;
-						if(*in) {
-							++in;
+						if(strcmp(prevSep, "\\..\\")) {
+							*prevSep = 0;
+							path->count = (u32)(prevSep - path->data) + 1;
+							sb_append_char(path, '\\');
+							in += 2;
+							if(*in) {
+								++in;
+							}
+							handled = true;
+							break;
 						}
-						handled = true;
-						break;
 					}
 				}
 			} else if(in[1] == '/' || in[1] == '\\' || !in[1]) {
