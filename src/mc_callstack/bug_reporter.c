@@ -3,9 +3,9 @@
 
 #include "mc_callstack/bug_reporter.h"
 #include "appdata.h"
+#include "bb_connection.h"
+#include "bb_serialize.h"
 #include "bb_thread.h"
-#include "bbclient/bb_connection.h"
-#include "bbclient/bb_serialize.h"
 #include "path_utils.h"
 #include "uuid_rfc4122/uuid.h"
 #include <stdlib.h>

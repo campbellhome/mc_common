@@ -1,7 +1,7 @@
 // Copyright (c) 2012-2019 Matt Campbell
 // MIT license (see License.txt)
 
-#include "bbclient/bb_types.h"
+#include "bb_types.h"
 
 #if defined(__cplusplus)
 extern "C" {

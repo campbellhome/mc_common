@@ -2,8 +2,8 @@
 // MIT license (see License.txt)
 
 #include "filter.h"
-#include "bbclient/bb_array.h"
-#include "bbclient/bb_string.h"
+#include "bb_array.h"
+#include "bb_string.h"
 #include "sdict.h"
 #include "tokenize.h"
 

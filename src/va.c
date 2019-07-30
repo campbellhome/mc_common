@@ -3,7 +3,7 @@
 
 #include "va.h"
 #include "bb_thread.h"
-#include "bbclient/bb_wrap_stdio.h"
+#include "bb_wrap_stdio.h"
 
 enum { kVA_NumSlots = 16 };
 typedef struct

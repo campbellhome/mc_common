@@ -2,10 +2,10 @@
 // MIT license (see License.txt)
 
 #include "process_utils.h"
+#include "bb_array.h"
+#include "bb_criticalsection.h"
 #include "bb_thread.h"
-#include "bbclient/bb_array.h"
-#include "bbclient/bb_criticalsection.h"
-#include "bbclient/bb_time.h"
+#include "bb_time.h"
 #include "dlist.h"
 #include "sb.h"
 #include "time_utils.h"

@@ -5,7 +5,7 @@
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
-      <AdditionalIncludeDirectories>$(mc_common_lib_PropsDir)..\include;$(mc_common_lib_PropsDir)..\submodules;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(mc_common_lib_PropsDir)..\include;$(mc_common_lib_PropsDir)..\submodules;$(mc_common_lib_PropsDir)..\submodules\bbclient\include\bbclient;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
   </ItemDefinitionGroup>
 </Project>

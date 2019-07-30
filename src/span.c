@@ -2,7 +2,7 @@
 // MIT license (see License.txt)
 
 #include "span.h"
-#include "bbclient/bb_string.h"
+#include "bb_string.h"
 #include <string.h>
 
 span_t span_from_string(const char *str)

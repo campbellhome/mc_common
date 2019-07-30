@@ -2,9 +2,9 @@
 // MIT license (see License.txt)
 
 #include "update_utils.h"
+#include "bb_array.h"
+#include "bb_file.h"
 #include "bb_wrap_dirent.h"
-#include "bbclient/bb_array.h"
-#include "bbclient/bb_file.h"
 #include "parson/parson.h"
 #include "path_utils.h"
 

@@ -5,7 +5,7 @@
 #include "sb.h"
 #include "va.h"
 
-#include "bbclient/bb_array.h"
+#include "bb_array.h"
 
 output_t g_output;
 

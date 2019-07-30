@@ -2,7 +2,7 @@
 // MIT license (see License.txt)
 
 #include "message_box.h"
-#include "bbclient/bb_array.h"
+#include "bb_array.h"
 
 typedef struct tag_messageBoxes {
 	u32 count;

@@ -5,8 +5,8 @@ __pragma(warning(disable : 4711)); // warning C4711: function 'Decode' selected 
 #endif
 
 #include "uuid_rfc4122/uuid.h"
-#include "bbclient/bb_criticalsection.h"
-#include "bbclient/bb_string.h"
+#include "bb_criticalsection.h"
+#include "bb_string.h"
 #include "uuid_rfc4122/copyrt.h"
 #include "uuid_rfc4122/sysdep.h"
 #include <stdio.h>

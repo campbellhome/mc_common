@@ -2,7 +2,7 @@
 // MIT license (see License.txt)
 
 #include "file_utils.h"
-#include "bbclient/bb_file.h"
+#include "bb_file.h"
 #include "common.h"
 
 #if BB_USING(BB_PLATFORM_WINDOWS)

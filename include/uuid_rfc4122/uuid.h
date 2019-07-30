@@ -9,7 +9,7 @@ extern "C" {
 
 #include "uuid_struct.h"
 
-#include "bbclient/bb_types.h"
+#include "bb_types.h"
 typedef struct uuid_node_s uuid_node_t;
 typedef void(uuid_state_read_func)(u16 *clockSequence, u32 *timestampLow, u32 *timestampHi, uuid_node_t *nodeId);
 typedef void(uuid_state_write_func)(u16 clockSequence, u32 timestampLow, u32 timestampHi, uuid_node_t nodeId);

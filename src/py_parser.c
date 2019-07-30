@@ -3,7 +3,7 @@
 
 #include "py_parser.h"
 #include "bb.h"
-#include "bbclient/bb_array.h"
+#include "bb_array.h"
 #include "env_utils.h"
 #include "file_utils.h"
 #include "process.h"

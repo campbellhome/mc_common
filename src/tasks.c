@@ -2,8 +2,8 @@
 // MIT license (see License.txt)
 
 #include "tasks.h"
-#include "bbclient/bb_array.h"
-#include "bbclient/bb_wrap_stdio.h"
+#include "bb_array.h"
+#include "bb_wrap_stdio.h"
 #include "va.h"
 
 static tasks s_tasks;

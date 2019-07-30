@@ -135,7 +135,7 @@ static void GenerateStructsSource(const char *prefix, sb_t *srcDir)
 	sb_append(s, "// clang-format off\n");
 	sb_append(s, "\n");
 	sb_va(s, "#include \"%sstructs_generated.h\"\n", prefix);
-	sb_append(s, "#include \"bbclient/bb_array.h\"\n");
+	sb_append(s, "#include \"bb_array.h\"\n");
 	sb_append(s, "#include \"va.h\"\n");
 	sb_append(s, "\n");
 	for(const std::string &str : g_paths) {

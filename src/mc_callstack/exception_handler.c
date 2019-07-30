@@ -2,7 +2,7 @@
 // MIT license (see License.txt)
 
 #include "mc_callstack/exception_handler.h"
-#include "bbclient/bb_defines.h"
+#include "bb_defines.h"
 #include "common.h"
 
 #if BB_USING(BB_PLATFORM_WINDOWS)

@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include "bbclient/bb_types.h"
+#include "bb_types.h"
 #include "span.h"
 
 #if defined(__cplusplus)

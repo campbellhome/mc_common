@@ -4,7 +4,7 @@
 #if defined(__cplusplus)
 extern "C" {
 #endif
-#include "bbclient/bb_common.h"
+#include "bb_common.h"
 #if defined(__cplusplus)
 }
 #endif

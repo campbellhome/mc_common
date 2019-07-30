@@ -2,7 +2,7 @@
 // MIT license (see License.txt)
 
 #include "process_task.h"
-#include "bbclient/bb_array.h"
+#include "bb_array.h"
 
 void task_process_tick(task *_t)
 {

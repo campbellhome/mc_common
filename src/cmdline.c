@@ -2,8 +2,8 @@
 // MIT license (see License.txt)
 
 #include "cmdline.h"
-#include "bbclient/bb_array.h"
-#include "bbclient/bb_string.h"
+#include "bb_array.h"
+#include "bb_string.h"
 #include "sb.h"
 #include "tokenize.h"
 #include <stdlib.h>

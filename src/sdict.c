@@ -2,8 +2,8 @@
 // MIT license (see License.txt)
 
 #include "sdict.h"
-#include "bbclient/bb_array.h"
-#include "bbclient/bb_wrap_stdio.h"
+#include "bb_array.h"
+#include "bb_wrap_stdio.h"
 #include "parson/parson.h"
 #include <stdlib.h>
 

@@ -2,9 +2,9 @@
 // MIT license (see License.txt)
 
 #include "dns_task.h"
+#include "bb_array.h"
+#include "bb_sockets.h"
 #include "bb_thread.h"
-#include "bbclient/bb_array.h"
-#include "bbclient/bb_sockets.h"
 #include "va.h"
 
 typedef struct tag_dns_task_userdata {

@@ -2,8 +2,8 @@
 // MIT license (see License.txt)
 
 #include "random_stream.h"
-#include "bbclient/bb_assert.h"
-#include "bbclient/bb_common.h"
+#include "bb_assert.h"
+#include "bb_common.h"
 
 BB_WARNING_PUSH(4820)
 #include <time.h>

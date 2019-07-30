@@ -1,6 +1,6 @@
 #include "mc_preproc.h"
 
-#include "bbclient/bb_string.h"
+#include "bb_string.h"
 #include "cmdline.h"
 #include "crt_leak_check.h"
 
@@ -453,7 +453,7 @@ void CheckFreeType(sb_t *outDir)
 	sb_append(s, "\n");
 	sb_append(s, "#pragma once\n");
 	sb_append(s, "\n");
-	sb_append(s, "#include \"bbclient/bb_common.h\"\n");
+	sb_append(s, "#include \"bb_common.h\"\n");
 	sb_append(s, "\n");
 	if(file_readable(sb_get(&freetypePath))) {
 		sb_append(s, "#define FEATURE_FREETYPE BB_ON\n");

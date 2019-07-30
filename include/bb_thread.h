@@ -11,7 +11,7 @@
 extern "C" {
 #endif
 
-#include "bbclient/bb_common.h"
+#include "bb_common.h"
 
 #if BB_USING(BB_COMPILER_MSVC)
 
