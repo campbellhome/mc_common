@@ -415,6 +415,7 @@ void find_files_in_dir(const char *dir, const char *desiredExt, sdict_t *sd)
 
 static void scanHeaders(const sb_t *scanDir)
 {
+	BB_LOG("mm_lexer::scan_dir", "^=%s dir: %s", g_bHeaderOnly ? "header" : "src", sb_get(scanDir));
 	sdict_t sd = {};
 	find_files_in_dir(sb_get(scanDir), ".h", &sd);
 	sdict_sort(&sd);
@@ -520,7 +521,8 @@ int CALLBACK WinMain(_In_ HINSTANCE /*Instance*/, _In_opt_ HINSTANCE /*PrevInsta
 		if(!bb_strnicmp(arg, "-prefix=", 8)) {
 		} else if(!bb_strnicmp(arg, "-src=", 5)) {
 		} else if(!bb_strnicmp(arg, "-include=", 9)) {
-		} else if(!bb_stricmp(cmdline_argv(i), "-fonts")) {
+		} else if(!bb_stricmp(arg, "-fonts")) {
+		} else if(!bb_stricmp(arg, "-bb")) {
 		} else if(!bb_strnicmp(arg, "-header=", 8)) {
 			sb_t scanDir = {};
 			sb_append(&scanDir, arg + 8);
