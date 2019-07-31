@@ -170,17 +170,36 @@ static const char *errno_str(int e)
 	}
 }
 
-b32 path_mkdir(const char *path)
+b32 path_mkdir_norecurse(const char *path)
 {
 	mode_t process_mask = umask(0);
-	int ret = mkdir(path, S_IRWXU);
-	umask(process_mask);
-	if(ret && errno != EEXIST) {
-		BB_WARNING("mkdir", "mkdir '%s' returned %d (errno %d %s)\n", path, ret, errno, errno_str(errno));
+	int ret = mkdir(path, S_IRWXU | S_IRWXG);
+	int err = errno;
+	if(ret && err != EEXIST) {
+		BB_WARNING("mkdir", "mkdir '%s' returned %d (errno %d %s)\n", path, ret, err, errno_str(err));
 	}
-	return !ret || errno == EEXIST; // not completely correct as EEXIST could be a file
+	umask(process_mask);
+	return !ret || err == EEXIST; // not completely correct as EEXIST could be a file
 }
 
+b32 path_mkdir(const char *path)
+{
+	char *temp = strdup(path);
+	char *s = temp;
+	while(*s) {
+		if(*s == '/') {
+			char c = *s;
+			*s = '\0';
+			if(s - temp > 2) {
+				path_mkdir_norecurse(temp);
+			}
+			*s = c;
+		}
+		++s;
+	}
+	free(temp);
+	return path_mkdir_norecurse(path);
+}
 b32 path_rmdir(const char *path)
 {
 	return rmdir(path) == 0;
