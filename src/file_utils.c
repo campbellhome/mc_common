@@ -111,6 +111,10 @@ int file_getTimestamps(const char *path, FILETIME *creationTime, FILETIME *acces
 #else // #if BB_USING(BB_PLATFORM_WINDOWS)
 
 #include "bb_wrap_stdio.h"
+#include <errno.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
 
 void fileData_reset(fileData_t *result)
 {
