@@ -8,7 +8,9 @@
 #include "bb_time.h"
 #include "dlist.h"
 #include "sb.h"
+#include "system_error_utils.h"
 #include "time_utils.h"
+#include "va.h"
 #include <stdlib.h>
 
 #if BB_USING(BB_PLATFORM_WINDOWS)
@@ -50,12 +52,7 @@ void process_init(void)
 static void process_report_error(const char *apiName, const char *cmdline, processLogType_t processLogType)
 {
 	if(processLogType != kProcessLog_None) {
-		char *errorMessage = "Unable to format error message";
-		DWORD lastError = GetLastError();
-		FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, NULL, lastError, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPTSTR)&errorMessage, 0, NULL);
-		BB_ERROR("process", "Failed to create process (%s):\n  %s\n  Error %u (0x%8.8X): %s",
-		         apiName, cmdline, lastError, lastError, errorMessage);
-		LocalFree(errorMessage);
+		system_error_to_log(GetLastError(), "process", va("Failed to create process (%s):\n  %s", apiName, cmdline));
 	}
 }
 

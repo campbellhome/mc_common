@@ -119,6 +119,7 @@
     <ClCompile Include="..\src\sdict.c" />
     <ClCompile Include="..\src\span.c" />
     <ClCompile Include="..\src\str.c" />
+    <ClCompile Include="..\src\system_error_utils.c" />
     <ClCompile Include="..\src\tasks.c" />
     <ClCompile Include="..\src\thread_task.c" />
     <ClCompile Include="..\src\tokenize.c" />
@@ -168,6 +169,7 @@
     <ClInclude Include="..\include\sdict.h" />
     <ClInclude Include="..\include\span.h" />
     <ClInclude Include="..\include\str.h" />
+    <ClInclude Include="..\include\system_error_utils.h" />
     <ClInclude Include="..\include\tasks.h" />
     <ClInclude Include="..\include\thread_task.h" />
     <ClInclude Include="..\include\time_utils.h" />

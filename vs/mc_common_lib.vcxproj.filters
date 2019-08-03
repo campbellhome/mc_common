@@ -103,6 +103,9 @@
     <ClCompile Include="..\submodules\stackwalker\Main\StackWalker\StackWalker.cpp">
       <Filter>Source Files\StackWalker</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\system_error_utils.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\include\appdata.h">
@@ -224,6 +227,9 @@
     </ClInclude>
     <ClInclude Include="..\submodules\stackwalker\Main\StackWalker\StackWalker.h">
       <Filter>Header Files\StackWalker</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\system_error_utils.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
