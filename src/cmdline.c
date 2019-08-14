@@ -4,6 +4,7 @@
 #include "cmdline.h"
 #include "bb_array.h"
 #include "bb_string.h"
+#include "path_utils.h"
 #include "sb.h"
 #include "tokenize.h"
 #include <stdlib.h>
@@ -35,6 +36,15 @@ static void cmdline_build_full(void)
 	}
 }
 
+static char *cmdline_resolve_exe_dir(const char *orig)
+{
+	sb_t resolved = sb_from_c_string(orig);
+	path_resolve_inplace(&resolved);
+	char *ret = bb_strdup(sb_get(&resolved));
+	sb_reset(&resolved);
+	return ret;
+}
+
 #if BB_USING(BB_PLATFORM_WINDOWS)
 
 static char *s_argBuffer;
@@ -47,7 +57,7 @@ void cmdline_init_exe(void)
 	GetModuleFileNameA(0, exePath, sizeof(exePath));
 	char *exeSep = strrchr(exePath, '\\');
 	*exeSep = 0;
-	s_exeDir = bb_strdup(exePath);
+	s_exeDir = cmdline_resolve_exe_dir(exePath);
 	s_exeFilename = bb_strdup(exeSep + 1);
 }
 
@@ -90,7 +100,7 @@ void cmdline_init_exe(void)
 	char *exePath = bb_strdup(s_argv[0]);
 	char *exeSep = strrchr(exePath, '/');
 	*exeSep = 0;
-	s_exeDir = bb_strdup(exePath);
+	s_exeDir = cmdline_resolve_exe_dir(exePath);
 	s_exeFilename = bb_strdup(exeSep + 1);
 }
 
