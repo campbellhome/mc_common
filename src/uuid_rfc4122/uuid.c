@@ -14,6 +14,14 @@ __pragma(warning(disable : 4711)); // warning C4711: function 'Decode' selected 
 #include <string.h>
 #include <time.h>
 
+#if !defined(_MSC_VER)
+#include <arpa/inet.h>
+static void fopen_s(FILE **fp, const char *filename, const char *mode)
+{
+	*fp = fopen(filename, mode);
+}
+#endif
+
 /* various forward declarations */
 static int read_state(unsigned16 *clockseq, uuid_time_t *timestamp,
                       uuid_node_t *node);

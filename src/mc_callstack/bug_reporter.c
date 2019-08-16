@@ -11,6 +11,7 @@
 #include "path_utils.h"
 #include "uuid_rfc4122/uuid.h"
 #include <stdlib.h>
+#include <string.h>
 
 static sb_t s_project;
 static sb_t s_assignee;
@@ -73,7 +74,7 @@ static void bug_report_write_string_data(bb_serialize_t *ser, const char *str)
 {
 	while(*str) {
 		char c = *str++;
-		bbserialize_s8(ser, &c);
+		bbserialize_s8(ser, (s8 *)&c);
 	}
 }
 

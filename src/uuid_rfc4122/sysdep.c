@@ -7,6 +7,7 @@ __pragma(warning(disable : 4820)); // warning C4820: '_iobuf' : '4' bytes paddin
 #include "uuid_rfc4122/sysdep.h"
 #include "uuid_rfc4122/copyrt.h"
 #include <stdio.h>
+#include <string.h>
 
 /* system dependent call to get the current system time. Returned as
 100ns ticks since UUID epoch, but resolution may be less than
@@ -57,6 +58,8 @@ void get_random_info(unsigned char seed[16])
 
 #else
 
+#include <unistd.h>
+
 void get_system_time(uuid_time_t *uuid_time)
 {
 	struct timeval tp;
@@ -66,11 +69,11 @@ void get_system_time(uuid_time_t *uuid_time)
 	/* Offset between UUID formatted times and Unix formatted times.
 	UUID UTC base time is October 15, 1582.
 	Unix base time is January 1, 1970.*/
-	*uuid_time = ((unsigned64)tp.tv_sec * 10000000) + ((unsigned64)tp.tv_usec * 10) + I64(0x01B21DD213814000);
+	*uuid_time = ((u64)tp.tv_sec * 10000000) + ((u64)tp.tv_usec * 10) + I64(0x01B21DD213814000);
 }
 
 /* Sample code, not for use in production; see RFC 1750 */
-void get_random_info(char seed[16])
+void get_random_info(unsigned char seed[16])
 {
 	MD5_CTX c;
 	struct {
@@ -85,6 +88,11 @@ void get_random_info(char seed[16])
 	gethostname(r.hostname, 256);
 	MD5Update(&c, &r, sizeof r);
 	MD5Final(seed, &c);
+}
+
+static void fopen_s(FILE **fp, const char *filename, const char *mode)
+{
+	*fp = fopen(filename, mode);
 }
 
 #endif
