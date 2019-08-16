@@ -36,7 +36,7 @@ static bb_thread_return_t dns_task_thread_proc(void *args)
 	struct addrinfo *p;
 	struct sockaddr_in *addr;
 	for(p = addrinfos; p != NULL; p = p->ai_next) {
-		if(!p->ai_addr->sa_family == AF_INET)
+		if(p->ai_addr->sa_family != AF_INET)
 			continue;
 		addr = (struct sockaddr_in *)(p->ai_addr);
 		bba_push(userdata->result.addrs, ntohl(BB_S_ADDR_UNION(*addr)));
