@@ -157,9 +157,7 @@ void bug_report_dispatch_sync(bugReport *report)
 			bb_critical_section_lock(&s_bugReport_cs);
 			bbcon_init(&s_bugReport_con);
 
-			u32 addr = 127 << 24 | 1;
-			u16 port = 51984;
-			if(bbcon_connect_client(&s_bugReport_con, addr, port)) {
+			if(bbcon_connect_client(&s_bugReport_con, report->addr, (u16)report->port)) {
 				bbcon_send_raw(&s_bugReport_con, buf, serializedLen);
 				bbcon_flush(&s_bugReport_con);
 				bbcon_disconnect(&s_bugReport_con);

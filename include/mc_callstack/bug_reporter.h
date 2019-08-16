@@ -22,6 +22,8 @@ typedef struct tag_bugReport {
 	sb_t dir;
 	sb_t title;
 	sb_t desc;
+	u32 addr;
+	u32 port;
 } bugReport;
 
 void bug_reporter_init(const char *project, const char *assignee);
