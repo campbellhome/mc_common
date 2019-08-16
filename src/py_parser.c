@@ -82,14 +82,14 @@ b32 py_parser_tick(pyParser *parser, sdicts *dicts, b32 bDebug)
 				const char *key, *val;
 				if(parser_peek_u32(parser, &keyLen)) {
 					parser_advance(parser, 4);
-					key = parser->data + parser->consumed;
+					key = (const char *)parser->data + parser->consumed;
 					if(parser_advance(parser, keyLen)) {
 						if(parser_peek_char(parser, &c)) {
 							if(c == 's') {
 								++parser->consumed;
 								if(parser_peek_u32(parser, &valLen)) {
 									parser_advance(parser, 4);
-									val = parser->data + parser->consumed;
+									val = (const char *)parser->data + parser->consumed;
 									if(parser_advance(parser, valLen)) {
 										ret = true;
 										sdictEntry_t entry;
@@ -196,7 +196,7 @@ b32 py_write_sb(pyWriter *pw, sb_t *sb)
 	ret = ret && py_write_char(pw, 's');
 	if(sb->count) {
 		ret = ret && py_write_u32(pw, sb->count - 1);
-		ret = ret && py_write_data(pw, sb->data, sb->count - 1);
+		ret = ret && py_write_data(pw, (s8 *)sb->data, sb->count - 1);
 	} else {
 		ret = ret && py_write_u32(pw, 0);
 	}

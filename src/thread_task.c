@@ -3,6 +3,7 @@
 
 #include "thread_task.h"
 #include <stdlib.h>
+#include <string.h>
 
 void task_thread_tick(task *t)
 {
@@ -37,7 +38,7 @@ void task_thread_reset(task *t)
 
 task thread_task_create(const char *name, Task_StateChanged statechanged, bb_thread_func func, void *data)
 {
-	task t = { 0 };
+	task t = { BB_EMPTY_INITIALIZER };
 	sb_append(&t.name, name);
 	t.tick = task_thread_tick;
 	t.stateChanged = statechanged ? statechanged : task_thread_statechanged;

@@ -7,6 +7,7 @@
 #include "bb_wrap_dirent.h"
 #include "parson/parson.h"
 #include "path_utils.h"
+#include <stdlib.h>
 
 static int update_version_compare(const void *_a, const void *_b)
 {

@@ -5,6 +5,8 @@
 #include "common.h"
 #include "va.h"
 
+#if BB_USING(BB_COMPILER_MSVC)
+
 static u64 s_frameStartCounter;
 static u64 s_counterFrequency;
 static double s_counterToMilliseconds;
@@ -85,3 +87,5 @@ const char *Time_StringFromEpochTime(u32 epochTime)
 	GetTimeFormat(LOCALE_USER_DEFAULT, 0, &st, NULL, timeBuffer, sizeof(timeBuffer));
 	return va("%s %s", dateBuffer, timeBuffer);
 }
+
+#endif // #if BB_USING(BB_COMPILER_MSVC)
