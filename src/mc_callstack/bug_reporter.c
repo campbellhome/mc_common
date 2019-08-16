@@ -4,8 +4,10 @@
 #include "mc_callstack/bug_reporter.h"
 #include "appdata.h"
 #include "bb_connection.h"
+#include "bb_file.h"
 #include "bb_serialize.h"
 #include "bb_thread.h"
+#include "cmdline.h"
 #include "path_utils.h"
 #include "uuid_rfc4122/uuid.h"
 #include <stdlib.h>
@@ -37,6 +39,7 @@ static void bug_report_reset(bugReport *report)
 	sb_reset(&report->dir);
 	sb_reset(&report->title);
 	sb_reset(&report->desc);
+	sb_reset(&report->version);
 	free(report);
 }
 
@@ -148,12 +151,58 @@ static u16 bug_report_serialize(bugReport *source, s8 *buffer, u16 len)
 	}
 }
 
+void bug_report_write_runtime_xml(const bugReport *report)
+{
+	sb_t contents = { BB_EMPTY_INITIALIZER };
+
+	sb_append(&contents, "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
+	sb_append(&contents, "<FGenericCrashContext>\n");
+	sb_append(&contents, "<RuntimeProperties>\n");
+	sb_va(&contents, "<CrashGUID>%s</CrashGUID>\n", sb_get(&report->guid));
+	switch(report->type) {
+	case kBugType_Bug:
+		sb_append(&contents, "<CrashType>Bug</CrashType>\n");
+		break;
+	case kBugType_Assert:
+		sb_append(&contents, "<CrashType>Assert</CrashType>\n");
+		break;
+	case kBugType_Crash:
+		sb_append(&contents, "<CrashType>Crash</CrashType>\n");
+		break;
+	default:
+		BB_BREAK();
+	}
+	sb_append(&contents, "<GameName>Blackbox</GameName>\n");
+	sb_append(&contents, "<ExecutableName>bb</ExecutableName>\n");
+	sb_va(&contents, "<EngineVersion>%s</EngineVersion>\n", sb_get(&report->version));
+	sb_va(&contents, "<BuildVersion>%s</BuildVersion>\n", sb_get(&report->version));
+	sb_va(&contents, "<CommandLine>%s</CommandLine>\n", cmdline_get_full());
+	sb_va(&contents, "<Misc.OSVersionMajor>%s</Misc.OSVersionMajor>\n", bb_platform_name(bb_platform()));
+	sb_append(&contents, "<Misc.OSVersionMinor></Misc.OSVersionMinor>\n");
+	sb_append(&contents, "</RuntimeProperties>\n");
+	sb_append(&contents, "</FGenericCrashContext>\n");
+
+	if(contents.count > 1) {
+		sb_t path = { BB_EMPTY_INITIALIZER };
+		sb_va(&path, "%s\\CrashContext.runtime-xml", sb_get(&report->dir));
+		path_resolve_inplace(&path);
+		bb_file_handle_t fp = bb_file_open_for_write(sb_get(&path));
+		if(fp) {
+			bb_file_write(fp, contents.data, contents.count - 1);
+			bb_file_close(fp);
+		}
+		sb_reset(&path);
+	}
+	sb_reset(&contents);
+}
+
 void bug_report_dispatch_sync(bugReport *report)
 {
 	if(sb_len(&report->guid)) {
 		s8 buf[4096];
 		u16 serializedLen = bug_report_serialize(report, buf, sizeof(buf));
 		if(serializedLen) {
+			bug_report_write_runtime_xml(report);
 			bb_critical_section_lock(&s_bugReport_cs);
 			bbcon_init(&s_bugReport_con);
 

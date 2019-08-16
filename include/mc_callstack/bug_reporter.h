@@ -22,6 +22,7 @@ typedef struct tag_bugReport {
 	sb_t dir;
 	sb_t title;
 	sb_t desc;
+	sb_t version;
 	u32 addr;
 	u32 port;
 } bugReport;
