@@ -206,3 +206,33 @@ sb_t json_deserialize_sb_t(JSON_Value *src)
 	}
 	return dst;
 }
+
+JSON_Value *json_serialize_sbs_t(const sbs_t *src)
+{
+	JSON_Value *val = json_value_init_array();
+	JSON_Array *arr = json_value_get_array(val);
+	if(arr) {
+		for(u32 i = 0; i < src->count; ++i) {
+			JSON_Value *child = json_serialize_sb_t(src->data + i);
+			if(child) {
+				json_array_append_value(arr, child);
+			}
+		}
+	}
+	return val;
+}
+
+sbs_t json_deserialize_sbs_t(JSON_Value *src)
+{
+	sbs_t dst;
+	memset(&dst, 0, sizeof(dst));
+	if(src) {
+		JSON_Array *arr = json_value_get_array(src);
+		if(arr) {
+			for(u32 i = 0; i < json_array_get_count(arr); ++i) {
+				bba_push(dst, json_deserialize_sb_t(json_array_get_value(arr, i)));
+			}
+		}
+	}
+	return dst;
+}

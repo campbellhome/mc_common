@@ -16,7 +16,7 @@ AUTOJSON AUTOHEADERONLY AUTOFROMLOC typedef struct sb_s {
 	char *data;
 } sb_t; // string builder
 
-typedef struct sbs_s {
+AUTOJSON AUTOHEADERONLY AUTOFROMLOC typedef struct sbs_s {
 	u32 count;
 	u32 allocated;
 	sb_t *data;
