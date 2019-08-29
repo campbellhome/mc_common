@@ -182,6 +182,18 @@ void sb_replace_all_inplace_from_loc(const char *file, int line, sb_t *src, cons
 	}
 }
 
+sbs_t sbs_clone_from_loc(const char *file, int line, const sbs_t *src)
+{
+	sbs_t dst = { BB_EMPTY_INITIALIZER };
+	for(u32 i = 0; i < src->count; ++i) {
+		sb_t *sb = bba_add_from_loc(file, line, dst, 1);
+		if(sb) {
+			*sb = sb_clone_from_loc(file, line, src->data + i);
+		}
+	}
+	return dst;
+}
+
 void sbs_reset_from_loc(const char *file, int line, sbs_t *sbs)
 {
 	for(u32 i = 0; i < sbs->count; ++i) {

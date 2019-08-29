@@ -53,8 +53,10 @@ sb_t sb_replace_all_from_loc(const char *file, int line, const sb_t *src, const 
 void sb_replace_all_inplace_from_loc(const char *file, int line, sb_t *src, const char *replaceThis, const char *replacement);
 const char *sb_get(const sb_t *sb);
 
+#define sbs_clone(sbs) sbs_clone_from_loc(__FILE__, __LINE__, sbs)
 #define sbs_reset(sbs) sbs_reset_from_loc(__FILE__, __LINE__, sbs)
 
+sbs_t sbs_clone_from_loc(const char *file, int line, const sbs_t *sbs);
 void sbs_reset_from_loc(const char *file, int line, sbs_t *sbs);
 
 typedef struct json_value_t JSON_Value;
