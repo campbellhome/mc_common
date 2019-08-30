@@ -49,7 +49,7 @@ static bb_thread_return_t dns_task_thread_proc(void *args)
 
 static void dns_task_tick(task *t)
 {
-	dns_task_userdata *userdata = (dns_task_userdata *)t->userdata;
+	dns_task_userdata *userdata = (dns_task_userdata *)t->taskData;
 	if(userdata && userdata->threadHandle) {
 		if(userdata->threadExitState != kTaskState_Running) {
 			task_set_state(t, userdata->threadExitState);
@@ -63,7 +63,7 @@ static void dns_task_tick(task *t)
 static void dns_task_statechanged(task *t)
 {
 	if(t->state == kTaskState_Running) {
-		dns_task_userdata *userdata = (dns_task_userdata *)t->userdata;
+		dns_task_userdata *userdata = (dns_task_userdata *)t->taskData;
 		if(userdata) {
 			userdata->threadHandle = bbthread_create(dns_task_thread_proc, userdata);
 			if(userdata->threadHandle) {
@@ -71,7 +71,7 @@ static void dns_task_statechanged(task *t)
 			}
 		}
 	} else if(task_done(t)) {
-		dns_task_userdata *userdata = (dns_task_userdata *)t->userdata;
+		dns_task_userdata *userdata = (dns_task_userdata *)t->taskData;
 		if(userdata && userdata->finishedFunc) {
 			(*userdata->finishedFunc)(t, &userdata->result);
 		}
@@ -80,7 +80,7 @@ static void dns_task_statechanged(task *t)
 
 void dns_task_reset(task *t)
 {
-	dns_task_userdata *userdata = (dns_task_userdata *)t->userdata;
+	dns_task_userdata *userdata = (dns_task_userdata *)t->taskData;
 	if(userdata) {
 		if(userdata->threadHandle && userdata->threadExitState == kTaskState_Running) {
 			userdata->threadExitRequest = true;
@@ -88,8 +88,8 @@ void dns_task_reset(task *t)
 		}
 		sb_reset(&userdata->result.name);
 		bba_free(userdata->result.addrs);
-		free(t->userdata);
-		t->userdata = NULL;
+		free(t->taskData);
+		t->taskData = NULL;
 	}
 }
 
@@ -100,9 +100,9 @@ task dns_task_create(const char *name, DnsTask_Finished *finished)
 	t.tick = dns_task_tick;
 	t.stateChanged = dns_task_statechanged;
 	t.reset = dns_task_reset;
-	t.userdata = malloc(sizeof(dns_task_userdata));
-	if(t.userdata) {
-		dns_task_userdata *userdata = (dns_task_userdata *)t.userdata;
+	t.taskData = malloc(sizeof(dns_task_userdata));
+	if(t.taskData) {
+		dns_task_userdata *userdata = (dns_task_userdata *)t.taskData;
 		memset(userdata, 0, sizeof(*userdata));
 		sb_append(&userdata->result.name, name);
 		userdata->finishedFunc = finished;
@@ -115,7 +115,7 @@ dns_task_result *dns_task_get_result(task *t)
 	if(!t || t->tick != dns_task_tick)
 		return NULL;
 
-	dns_task_userdata *userdata = (dns_task_userdata *)t->userdata;
+	dns_task_userdata *userdata = (dns_task_userdata *)t->taskData;
 	if(!userdata) {
 		return NULL;
 	}

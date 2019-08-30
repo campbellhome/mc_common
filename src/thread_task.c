@@ -7,7 +7,7 @@
 
 void task_thread_tick(task *t)
 {
-	task_thread *th = t->userdata;
+	task_thread *th = t->taskData;
 	if(th && th->handle) {
 		if(th->threadDesiredState > kTaskState_Running && t->state != th->threadDesiredState) {
 			task_set_state(t, th->threadDesiredState);
@@ -18,21 +18,21 @@ void task_thread_tick(task *t)
 void task_thread_statechanged(task *t)
 {
 	if(t->state == kTaskState_Running) {
-		task_thread *th = t->userdata;
+		task_thread *th = t->taskData;
 		th->handle = bbthread_create(th->func, th);
 	}
 }
 
 void task_thread_reset(task *t)
 {
-	task_thread *th = t->userdata;
+	task_thread *th = t->taskData;
 	if(th) {
 		if(th->handle) {
 			th->shouldTerminate = true;
 			bbthread_join(th->handle);
 		}
 		free(th);
-		t->userdata = NULL;
+		t->taskData = NULL;
 	}
 }
 
@@ -43,9 +43,9 @@ task thread_task_create(const char *name, Task_StateChanged statechanged, bb_thr
 	t.tick = task_thread_tick;
 	t.stateChanged = statechanged ? statechanged : task_thread_statechanged;
 	t.reset = task_thread_reset;
-	t.userdata = malloc(sizeof(task_thread));
-	if(t.userdata) {
-		task_thread *th = t.userdata;
+	t.taskData = malloc(sizeof(task_thread));
+	if(t.taskData) {
+		task_thread *th = t.taskData;
 		memset(th, 0, sizeof(*th));
 		th->func = func;
 		th->data = data;

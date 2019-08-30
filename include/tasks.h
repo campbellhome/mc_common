@@ -50,7 +50,7 @@ typedef struct tag_task {
 	u8 pad[4];
 	tasks subtasks;
 	task *parent;
-	void *userdata;
+	void *taskData;
 	sdict_t extraData;
 	Task_Tick *tick;
 	Task_StateChanged *stateChanged;
