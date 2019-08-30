@@ -70,6 +70,11 @@ static void dns_task_statechanged(task *t)
 				userdata->threadExitState = kTaskState_Running;
 			}
 		}
+	} else if(task_done(t)) {
+		dns_task_userdata *userdata = (dns_task_userdata *)t->userdata;
+		if(userdata && userdata->finishedFunc) {
+			(*userdata->finishedFunc)(t, &userdata->result);
+		}
 	}
 }
 
