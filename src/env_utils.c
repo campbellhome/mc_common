@@ -14,6 +14,7 @@ sb_t env_get(const char *name)
 	if(required) {
 		if(sb_grow(&ret, required)) {
 			GetEnvironmentVariable(name, ret.data, ret.count);
+			ret.count = (u32)strlen(ret.data) + 1;
 		}
 	}
 
@@ -30,6 +31,7 @@ sb_t env_resolve(const char *src)
 	if(required) {
 		if(sb_grow(&ret, required)) {
 			ExpandEnvironmentStringsA(src, ret.data, ret.count);
+			ret.count = (u32)strlen(ret.data) + 1;
 		}
 	}
 

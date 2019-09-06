@@ -51,6 +51,8 @@ void sb_va_from_loc(const char *file, int line, sb_t *sb, const char *fmt, ...);
 void sb_va_list_from_loc(const char *file, int line, sb_t *sb, const char *fmt, va_list args);
 sb_t sb_replace_all_from_loc(const char *file, int line, const sb_t *src, const char *replaceThis, const char *replacement);
 void sb_replace_all_inplace_from_loc(const char *file, int line, sb_t *src, const char *replaceThis, const char *replacement);
+void sb_toupper_inline(sb_t *s);
+void sb_tolower_inline(sb_t *s);
 const char *sb_get(const sb_t *sb);
 
 #define sbs_clone(sbs) sbs_clone_from_loc(__FILE__, __LINE__, sbs)

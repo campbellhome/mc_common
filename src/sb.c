@@ -173,6 +173,28 @@ sb_t sb_replace_all_from_loc(const char *file, int line, const sb_t *src, const 
 	return outData;
 }
 
+void sb_toupper_inline(sb_t *s)
+{
+	char *c = s->data;
+	while(c && *c) {
+		if(*c >= 'a' && *c <= 'z') {
+			*c -= 'a' - 'A';
+		}
+		++c;
+	}
+}
+
+void sb_tolower_inline(sb_t *s)
+{
+	char *c = s->data;
+	while(c && *c) {
+		if(*c >= 'A' && *c <= 'Z') {
+			*c += 'a' - 'A';
+		}
+		++c;
+	}
+}
+
 void sb_replace_all_inplace_from_loc(const char *file, int line, sb_t *src, const char *replaceThis, const char *replacement)
 {
 	if(src) {
