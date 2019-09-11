@@ -169,7 +169,7 @@ b32 fileData_write(const char *pathname, const char *tempPathname, fileData_t da
 	if(!tempPathname || !*tempPathname || !file_readable(pathname)) {
 		tempPathname = pathname;
 	}
-	FILE *fp = fopen(tempPathname, "Wb");
+	FILE *fp = fopen(tempPathname, "wb");
 	if(fp) {
 		size_t bytesWritten = fwrite(data.buffer, 1, data.bufferSize, fp);
 		if(bytesWritten != data.bufferSize) {
