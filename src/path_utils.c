@@ -5,6 +5,15 @@
 #include "bb_array.h"
 #include "bb_wrap_stdio.h"
 
+char path_get_separator(void)
+{
+#if BB_USING(BB_PLATFORM_WINDOWS)
+	return '\\';
+#else
+	return '/';
+#endif
+}
+
 const char *path_get_filename(const char *path)
 {
 	const char *sep = strrchr(path, '/');

@@ -15,6 +15,7 @@ void path_resolve_inplace(sb_t *path);
 void path_remove_filename(sb_t *path);
 b32 path_mkdir(const char *path);
 b32 path_rmdir(const char *path); // non-recursive, must be empty
+char path_get_separator(void);
 
 #if defined(__cplusplus)
 }
