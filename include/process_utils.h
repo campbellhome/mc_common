@@ -24,7 +24,7 @@ typedef struct process_s {
 	processIO stdoutBuffer;
 	processIO stderrBuffer;
 	b32 done;
-	u8 pad[4];
+	u32 exitCode;
 } process_t;
 
 typedef struct processSpawnResult_s {

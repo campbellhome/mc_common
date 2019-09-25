@@ -315,6 +315,7 @@ processTickResult_t process_tick(process_t *base)
 		DWORD exitCode = ~0u;
 		GetExitCodeProcess(process->hProcess, &exitCode);
 		result.exitCode = exitCode;
+		base->exitCode = exitCode;
 	}
 	return result;
 }

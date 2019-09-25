@@ -11,6 +11,7 @@ extern "C" {
 
 u32 strtou32(const char *s);
 s32 strtos32(const char *s);
+u64 strsimplehash(const char* s);
 
 #if defined(__cplusplus)
 }

@@ -14,6 +14,8 @@ extern "C" {
 #define AUTODEFAULT(val)
 #define AUTOVALIDATE
 #define AUTOFROMLOC
+#define AUTOSTRUCT
+#define AUTOSTRINGHASH
 
 #if BB_USING(BB_PLATFORM_WINDOWS)
 

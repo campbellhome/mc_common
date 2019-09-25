@@ -5,6 +5,7 @@
 #include "bb_array.h"
 #include "bb_wrap_stdio.h"
 #include "parson/parson.h"
+#include "span.h"
 #include <string.h>
 
 void sb_init(sb_t *sb)
@@ -15,13 +16,33 @@ void sb_init(sb_t *sb)
 
 void sb_reset_from_loc(const char *file, int line, sb_t *sb)
 {
-	bba_free_from_loc(file, line, *sb);
+	if(sb->allocated) {
+		bba_free_from_loc(file, line, *sb);
+	} else {
+		sb->count = 0;
+		sb->data = 0;
+	}
+}
+
+sb_t sb_from_span_from_loc(const char *file, int line, span_t span)
+{
+	sb_t dst = { BB_EMPTY_INITIALIZER };
+	sb_append_range_from_loc(file, line, &dst, span.start, span.end);
+	return dst;
 }
 
 sb_t sb_from_c_string_from_loc(const char *file, int line, const char *src)
 {
 	sb_t dst = { BB_EMPTY_INITIALIZER };
 	sb_append_from_loc(file, line, &dst, src);
+	return dst;
+}
+
+sb_t sb_from_c_string_no_alloc(const char *src)
+{
+	sb_t dst = { BB_EMPTY_INITIALIZER };
+	dst.count = src ? (u32)strlen(src) + 1 : 0;
+	dst.data = (char *)src;
 	return dst;
 }
 
@@ -37,8 +58,21 @@ u32 sb_len(sb_t *sb)
 	return sb->count ? sb->count - 1 : 0;
 }
 
+b32 sb_ensure_allocated(sb_t *sb)
+{
+	if(sb->data && !sb->allocated) {
+		*sb = sb_from_c_string(sb->data);
+		return sb->allocated > 0;
+	} else {
+		return true;
+	}
+}
+
 b32 sb_reserve_from_loc(const char *file, int line, sb_t *sb, u32 len)
 {
+	if(!sb_ensure_allocated(sb)) {
+		return false;
+	}
 	if(sb->allocated < len && len > 0) {
 		sb_t tmp = { BB_EMPTY_INITIALIZER };
 		bba_add_noclear_from_loc(file, line, tmp, len);
@@ -60,6 +94,9 @@ b32 sb_reserve_from_loc(const char *file, int line, sb_t *sb, u32 len)
 
 b32 sb_grow_from_loc(const char *file, int line, sb_t *sb, u32 len)
 {
+	if(!sb_ensure_allocated(sb)) {
+		return false;
+	}
 	u32 originalCount = sb->count;
 	u32 addedCount = (originalCount) ? len : len + 1;
 	u32 desiredCount = originalCount + addedCount;
@@ -82,6 +119,11 @@ void sb_append_from_loc(const char *file, int line, sb_t *sb, const char *text)
 {
 	if(!text)
 		return;
+
+	if(!sb_ensure_allocated(sb)) {
+		return;
+	}
+
 	u32 len = (u32)strlen(text);
 	u32 originalCount = sb->count;
 	u32 addedCount = (originalCount) ? len : len + 1;
@@ -94,6 +136,10 @@ void sb_append_from_loc(const char *file, int line, sb_t *sb, const char *text)
 
 void sb_append_range_from_loc(const char *file, int line, sb_t *sb, const char *start, const char *end)
 {
+	if(!sb_ensure_allocated(sb)) {
+		return;
+	}
+
 	u32 len = (u32)(end - start);
 	u32 originalCount = sb->count;
 	u32 addedCount = (originalCount) ? len : len + 1;
@@ -119,6 +165,24 @@ const char *sb_get(const sb_t *sb)
 		return sb->data;
 	}
 	return "";
+}
+
+sb_t sb_from_va_from_loc(const char *file, int line, const char *fmt, ...)
+{
+	sb_t dst = { BB_EMPTY_INITIALIZER };
+	int len;
+	va_list args;
+	va_start(args, fmt);
+	len = vsnprintf(NULL, 0, fmt, args);
+	va_end(args);
+	if(len > 0) {
+		if(sb_grow_from_loc(file, line, &dst, len)) {
+			va_start(args, fmt);
+			vsnprintf(dst.data, (u64)len + 1, fmt, args);
+			va_end(args);
+		}
+	}
+	return dst;
 }
 
 void sb_va_from_loc(const char *file, int line, sb_t *sb, const char *fmt, ...)
@@ -163,10 +227,11 @@ sb_t sb_replace_all_from_loc(const char *file, int line, const sb_t *src, const 
 			char c = *in;
 			if(strncmp(in, replaceThis, replacementLen)) {
 				sb_append_char_from_loc(file, line, out, c);
+				++in;
 			} else {
 				sb_append_from_loc(file, line, out, replacement);
+				in += replacementLen;
 			}
-			++in;
 		}
 	}
 
@@ -175,6 +240,10 @@ sb_t sb_replace_all_from_loc(const char *file, int line, const sb_t *src, const 
 
 void sb_toupper_inline(sb_t *s)
 {
+	if(!sb_ensure_allocated(s)) {
+		return;
+	}
+
 	char *c = s->data;
 	while(c && *c) {
 		if(*c >= 'a' && *c <= 'z') {
@@ -186,6 +255,10 @@ void sb_toupper_inline(sb_t *s)
 
 void sb_tolower_inline(sb_t *s)
 {
+	if(!sb_ensure_allocated(s)) {
+		return;
+	}
+
 	char *c = s->data;
 	while(c && *c) {
 		if(*c >= 'A' && *c <= 'Z') {

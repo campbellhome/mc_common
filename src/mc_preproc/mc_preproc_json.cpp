@@ -28,6 +28,8 @@ static void GenerateJsonHeader(const char *prefix, sb_t *srcDir)
 	sb_append(s, "#endif\n");
 	sb_append(s, "\n");
 	for(const struct_s &o : g_structs) {
+		if(!o.jsonSerialization)
+			continue;
 		if(o.typedefBaseName.empty()) {
 			sb_va(s, "struct %s;\n", o.name.c_str());
 		} else {
@@ -44,10 +46,14 @@ static void GenerateJsonHeader(const char *prefix, sb_t *srcDir)
 	}
 	sb_append(s, "\n");
 	for(const struct_s &o : g_structs) {
+		if(!o.jsonSerialization)
+			continue;
 		sb_va(s, "%s json_deserialize_%s(JSON_Value *src);\n", o.name.c_str(), o.name.c_str());
 	}
 	sb_append(s, "\n");
 	for(const struct_s &o : g_structs) {
+		if(!o.jsonSerialization)
+			continue;
 		sb_va(s, "JSON_Value *json_serialize_%s(const %s *src);\n", o.name.c_str(), o.name.c_str());
 	}
 	sb_append(s, "\n");
@@ -100,7 +106,7 @@ static memberJsonType_e ClassifyMemberJson(const struct_member_s &m)
 	return kMemberJsonNumber;
 }
 
-static void GenerateJsonSource(const char *prefix, sb_t *srcDir)
+static void GenerateJsonSource(const char *prefix, const char *includePrefix, sb_t *srcDir)
 {
 	sb_t data;
 	sb_init(&data);
@@ -113,19 +119,22 @@ static void GenerateJsonSource(const char *prefix, sb_t *srcDir)
 	sb_append(s, "\n");
 	sb_append(s, "// clang-format off\n");
 	sb_append(s, "\n");
-	sb_va(s, "#include \"%sjson_generated.h\"\n", prefix);
+	sb_va(s, "#include \"%s%sjson_generated.h\"\n", includePrefix, prefix);
 	sb_append(s, "#include \"bb_array.h\"\n");
 	sb_append(s, "#include \"json_utils.h\"\n");
 	sb_append(s, "#include \"va.h\"\n");
 	sb_append(s, "\n");
 	for(const std::string &str : g_paths) {
-		sb_va(s, "#include \"%s\"\n", str.c_str());
+		sb_t path = sb_from_c_string(str.c_str());
+		sb_replace_all_inplace(&path, "\\", "/");
+		sb_va(s, "#include \"%s\"\n", sb_get(&path));
+		sb_reset(&path);
 	}
 	sb_append(s, "\n");
 	sb_append(s, "//////////////////////////////////////////////////////////////////////////\n");
 	sb_append(s, "\n");
 	for(const struct_s &o : g_structs) {
-		if(o.headerOnly)
+		if(o.headerOnly || !o.jsonSerialization)
 			continue;
 		const struct_member_s *m_count = nullptr;
 		const struct_member_s *m_allocated = nullptr;
@@ -216,7 +225,7 @@ static void GenerateJsonSource(const char *prefix, sb_t *srcDir)
 	sb_append(s, "//////////////////////////////////////////////////////////////////////////\n");
 	sb_append(s, "\n");
 	for(const struct_s &o : g_structs) {
-		if(o.headerOnly)
+		if(o.headerOnly || !o.jsonSerialization)
 			continue;
 		const struct_member_s *m_count = nullptr;
 		const struct_member_s *m_allocated = nullptr;
@@ -349,8 +358,8 @@ static void GenerateJsonSource(const char *prefix, sb_t *srcDir)
 	sb_reset(&data);
 }
 
-void GenerateJson(const char *prefix, sb_t *srcDir, sb_t *includeDir)
+void GenerateJson(const char *prefix, const char *includePrefix, sb_t *srcDir, sb_t *includeDir)
 {
 	GenerateJsonHeader(prefix, includeDir);
-	GenerateJsonSource(prefix, srcDir);
+	GenerateJsonSource(prefix, includePrefix, srcDir);
 }

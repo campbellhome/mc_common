@@ -10,6 +10,8 @@
 extern "C" {
 #endif
 
+typedef struct span_s span_t;
+
 AUTOJSON AUTOHEADERONLY AUTOFROMLOC typedef struct sb_s {
 	u32 count;
 	u32 allocated;
@@ -22,15 +24,19 @@ AUTOJSON AUTOHEADERONLY AUTOFROMLOC typedef struct sbs_s {
 	sb_t *data;
 } sbs_t;
 
+#define sb_from_span(src) sb_from_span_from_loc(__FILE__, __LINE__, src)
 #define sb_from_c_string(src) sb_from_c_string_from_loc(__FILE__, __LINE__, src)
+#if !defined(sb_clone)
 #define sb_clone(sb) sb_clone_from_loc(__FILE__, __LINE__, sb)
 #define sb_reset(sb) sb_reset_from_loc(__FILE__, __LINE__, sb)
+#endif
 #define sb_reserve(sb, len) sb_reserve_from_loc(__FILE__, __LINE__, sb, len)
 #define sb_grow(sb, len) sb_grow_from_loc(__FILE__, __LINE__, sb, len)
 #define sb_move(target, src) sb_move_from_loc(__FILE__, __LINE__, target, src)
 #define sb_append(sb, text) sb_append_from_loc(__FILE__, __LINE__, sb, text)
 #define sb_append_range(sb, start, end) sb_append_range_from_loc(__FILE__, __LINE__, sb, start, end)
 #define sb_append_char(sb, c) sb_append_char_from_loc(__FILE__, __LINE__, sb, c)
+#define sb_from_va(fmt, ...) sb_from_va_from_loc(__FILE__, __LINE__, fmt, __VA_ARGS__)
 #define sb_va(sb, fmt, ...) sb_va_from_loc(__FILE__, __LINE__, sb, fmt, __VA_ARGS__)
 #define sb_va_list(sb, fmt, args) sb_va_list_from_loc(__FILE__, __LINE__, sb, fmt, args)
 #define sb_replace_all(sb, replaceThis, replacement) sb_replace_all_from_loc(__FILE__, __LINE__, sb, replaceThis, replacement)
@@ -39,7 +45,9 @@ AUTOJSON AUTOHEADERONLY AUTOFROMLOC typedef struct sbs_s {
 void sb_init(sb_t *sb);
 void sb_reset_from_loc(const char *file, int line, sb_t *sb);
 u32 sb_len(sb_t *sb);
+sb_t sb_from_span_from_loc(const char *file, int line, span_t span);
 sb_t sb_from_c_string_from_loc(const char *file, int line, const char *src);
+sb_t sb_from_c_string_no_alloc(const char *src);
 sb_t sb_clone_from_loc(const char *file, int line, const sb_t *src);
 b32 sb_reserve_from_loc(const char *file, int line, sb_t *sb, u32 len);
 b32 sb_grow_from_loc(const char *file, int line, sb_t *sb, u32 len);
@@ -47,6 +55,7 @@ void sb_move_from_loc(const char *file, int line, sb_t *target, sb_t *src);
 void sb_append_from_loc(const char *file, int line, sb_t *sb, const char *text);
 void sb_append_range_from_loc(const char *file, int line, sb_t *sb, const char *start, const char *end);
 void sb_append_char_from_loc(const char *file, int line, sb_t *sb, char c);
+sb_t sb_from_va_from_loc(const char *file, int line, const char *fmt, ...);
 void sb_va_from_loc(const char *file, int line, sb_t *sb, const char *fmt, ...);
 void sb_va_list_from_loc(const char *file, int line, sb_t *sb, const char *fmt, va_list args);
 sb_t sb_replace_all_from_loc(const char *file, int line, const sb_t *src, const char *replaceThis, const char *replacement);
@@ -55,8 +64,10 @@ void sb_toupper_inline(sb_t *s);
 void sb_tolower_inline(sb_t *s);
 const char *sb_get(const sb_t *sb);
 
+#if !defined(sbs_clone)
 #define sbs_clone(sbs) sbs_clone_from_loc(__FILE__, __LINE__, sbs)
 #define sbs_reset(sbs) sbs_reset_from_loc(__FILE__, __LINE__, sbs)
+#endif
 
 sbs_t sbs_clone_from_loc(const char *file, int line, const sbs_t *sbs);
 void sbs_reset_from_loc(const char *file, int line, sbs_t *sbs);

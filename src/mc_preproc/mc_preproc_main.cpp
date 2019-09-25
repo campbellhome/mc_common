@@ -22,6 +22,7 @@ std::vector< enum_s > g_enums;
 std::vector< struct_s > g_structs;
 std::set< std::string > g_paths;
 bool g_bHeaderOnly;
+const char *g_includePrefix = "";
 
 std::string lexer_token_string(const lexer_token &tok)
 {
@@ -116,7 +117,7 @@ bool mm_lexer_parse_enum(lexer *lex, std::string defaultVal, bool isTypedef)
 	return false;
 }
 
-bool mm_lexer_parse_struct(lexer *lex, bool autovalidate, bool headerOnly, bool fromLoc, bool isTypedef)
+bool mm_lexer_parse_struct(lexer *lex, bool autovalidate, bool headerOnly, bool fromLoc, bool isTypedef, bool jsonSerialization, bool bStringHash)
 {
 	lexer_token name;
 	if(!lexer_read_on_line(lex, &name)) {
@@ -124,7 +125,7 @@ bool mm_lexer_parse_struct(lexer *lex, bool autovalidate, bool headerOnly, bool 
 		return false;
 	}
 
-	struct_s s = { lexer_token_string(name), "", autovalidate, headerOnly, fromLoc };
+	struct_s s = { lexer_token_string(name), "", autovalidate, headerOnly, fromLoc, jsonSerialization, bStringHash };
 	//BB_LOG("mm_lexer", "AUTOJSON struct %s on line %u", s.name.c_str(), name.line);
 
 	lexer_token tok;
@@ -320,7 +321,7 @@ bool mm_lexer_parse_struct(lexer *lex, bool autovalidate, bool headerOnly, bool 
 	return true;
 }
 
-void mm_lexer_scan_file(const char *text, lexer_size text_length, const char *path, const sb_t *basePath)
+static void mm_lexer_scan_file_for_keyword(const char *text, lexer_size text_length, const char *path, const sb_t *basePath, const char *keyword)
 {
 	/* initialize lexer */
 	lexer lex;
@@ -328,8 +329,9 @@ void mm_lexer_scan_file(const char *text, lexer_size text_length, const char *pa
 
 	/* parse tokens */
 
+	bool jsonSerialization = !bb_stricmp(keyword, "AUTOJSON");
 	bool foundAny = false;
-	while(lexer_skip_until(&lex, "AUTOJSON")) {
+	while(lexer_skip_until(&lex, keyword)) {
 		bool isTypedef = lexer_check_string(&lex, "typedef");
 		if(lexer_check_string(&lex, "enum")) {
 			foundAny = mm_lexer_parse_enum(&lex, "", isTypedef) || foundAny;
@@ -355,6 +357,7 @@ void mm_lexer_scan_file(const char *text, lexer_size text_length, const char *pa
 			bool autovalidate = false;
 			bool headerOnly = g_bHeaderOnly;
 			bool fromLoc = false;
+			bool bStringHash = false;
 
 			while(1) {
 				if(lexer_check_string(&lex, "AUTOVALIDATE")) {
@@ -363,6 +366,8 @@ void mm_lexer_scan_file(const char *text, lexer_size text_length, const char *pa
 					headerOnly = true;
 				} else if(lexer_check_string(&lex, "AUTOFROMLOC")) {
 					fromLoc = true;
+				} else if(lexer_check_string(&lex, "AUTOSTRINGHASH")) {
+					bStringHash = true;
 				} else if(lexer_check_string(&lex, "typedef")) {
 					isTypedef = true;
 				} else {
@@ -371,17 +376,27 @@ void mm_lexer_scan_file(const char *text, lexer_size text_length, const char *pa
 			}
 
 			if(lexer_check_string(&lex, "struct")) {
-				foundAny = mm_lexer_parse_struct(&lex, autovalidate, headerOnly, fromLoc, isTypedef) || foundAny;
+				foundAny = mm_lexer_parse_struct(&lex, autovalidate, headerOnly, fromLoc, isTypedef, jsonSerialization, bStringHash) || foundAny;
 			}
 		}
 	}
 
 	if(foundAny) {
-		g_paths.insert(path + basePath->count);
+		if(g_bHeaderOnly) {
+			g_paths.insert(path + basePath->count);
+		} else {
+			g_paths.insert((std::string)g_includePrefix + (path + basePath->count));
+		}
 	}
 }
 
-void find_files_in_dir(const char *dir, const char *desiredExt, sdict_t *sd)
+void mm_lexer_scan_file(const char *text, lexer_size text_length, const char *path, const sb_t *basePath)
+{
+	mm_lexer_scan_file_for_keyword(text, text_length, path, basePath, "AUTOJSON");
+	mm_lexer_scan_file_for_keyword(text, text_length, path, basePath, "AUTOSTRUCT");
+}
+
+void find_files_in_dir(const char *dir, const char *desiredExt, sdict_t *sd, bool bRecurse)
 {
 	WIN32_FIND_DATA find;
 	HANDLE hFind;
@@ -391,10 +406,10 @@ void find_files_in_dir(const char *dir, const char *desiredExt, sdict_t *sd)
 	if(INVALID_HANDLE_VALUE != (hFind = FindFirstFileA(sb_get(&filter), &find))) {
 		do {
 			if(find.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
-				if(find.cFileName[0] != '.') {
+				if(find.cFileName[0] != '.' && bRecurse) {
 					sb_t subdir = {};
 					sb_va(&subdir, "%s\\%s", dir, find.cFileName);
-					find_files_in_dir(sb_get(&subdir), desiredExt, sd);
+					find_files_in_dir(sb_get(&subdir), desiredExt, sd, bRecurse);
 					sb_reset(&subdir);
 				}
 			} else {
@@ -413,11 +428,11 @@ void find_files_in_dir(const char *dir, const char *desiredExt, sdict_t *sd)
 	sb_reset(&filter);
 }
 
-static void scanHeaders(const sb_t *scanDir)
+static void scanHeaders(const sb_t *scanDir, bool bRecurse)
 {
 	BB_LOG("mm_lexer::scan_dir", "^=%s dir: %s", g_bHeaderOnly ? "header" : "src", sb_get(scanDir));
 	sdict_t sd = {};
-	find_files_in_dir(sb_get(scanDir), ".h", &sd);
+	find_files_in_dir(sb_get(scanDir), ".h", &sd, bRecurse);
 	sdict_sort(&sd);
 
 	for(u32 i = 0; i < sd.count; ++i) {
@@ -497,6 +512,8 @@ int CALLBACK WinMain(_In_ HINSTANCE /*Instance*/, _In_opt_ HINSTANCE /*PrevInsta
 		const char *arg = cmdline_argv(i);
 		if(!bb_strnicmp(arg, "-prefix=", 8)) {
 			prefix = arg + 8;
+		} else if(!bb_strnicmp(arg, "-includePrefix=", 15)) {
+			g_includePrefix = arg + 15;
 		} else if(!bb_strnicmp(arg, "-src=", 5)) {
 			sb_append(&srcDir, arg + 5);
 		} else if(!bb_strnicmp(arg, "-include=", 9)) {
@@ -519,6 +536,7 @@ int CALLBACK WinMain(_In_ HINSTANCE /*Instance*/, _In_opt_ HINSTANCE /*PrevInsta
 	for(int i = 1; i < cmdline_argc(); ++i) {
 		const char *arg = cmdline_argv(i);
 		if(!bb_strnicmp(arg, "-prefix=", 8)) {
+		} else if(!bb_strnicmp(arg, "-includePrefix=", 15)) {
 		} else if(!bb_strnicmp(arg, "-src=", 5)) {
 		} else if(!bb_strnicmp(arg, "-include=", 9)) {
 		} else if(!bb_stricmp(arg, "-fonts")) {
@@ -528,20 +546,28 @@ int CALLBACK WinMain(_In_ HINSTANCE /*Instance*/, _In_opt_ HINSTANCE /*PrevInsta
 			sb_append(&scanDir, arg + 8);
 			path_resolve_inplace(&scanDir);
 			g_bHeaderOnly = true;
-			scanHeaders(&scanDir);
+			scanHeaders(&scanDir, true);
+			g_bHeaderOnly = false;
+			sb_reset(&scanDir);
+		} else if(!bb_strnicmp(arg, "-headernorecurse=", 17)) {
+			sb_t scanDir = {};
+			sb_append(&scanDir, arg + 17);
+			path_resolve_inplace(&scanDir);
+			g_bHeaderOnly = true;
+			scanHeaders(&scanDir, false);
 			g_bHeaderOnly = false;
 			sb_reset(&scanDir);
 		} else {
 			sb_t scanDir = {};
 			sb_append(&scanDir, arg);
 			path_resolve_inplace(&scanDir);
-			scanHeaders(&scanDir);
+			scanHeaders(&scanDir, true);
 			sb_reset(&scanDir);
 		}
 	}
 
-	GenerateJson(prefix, &srcDir, &includeDir);
-	GenerateStructs(prefix, &srcDir, &includeDir);
+	GenerateJson(prefix, g_includePrefix, &srcDir, &includeDir);
+	GenerateStructs(prefix, g_includePrefix, &srcDir, &includeDir);
 	if(checkFonts) {
 		CheckFreeType(&includeDir);
 	}

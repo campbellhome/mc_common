@@ -5,11 +5,12 @@
 #include "bb_array.h"
 #include "bb_criticalsection.h"
 #include "bb_defines.h"
+
+#if BB_USING(BB_PLATFORM_WINDOWS)
+
 BB_WARNING_PUSH(4820)
 #include "stackwalker/Main/StackWalker/StackWalker.h"
 BB_WARNING_POP
-
-#if BB_USING(BB_PLATFORM_WINDOWS)
 
 class BBStackWalker : public StackWalker
 {

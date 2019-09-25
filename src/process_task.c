@@ -10,7 +10,11 @@ void task_process_tick(task *_t)
 	if(t->process) {
 		processTickResult_t res = process_tick(t->process);
 		if(res.done) {
-			task_set_state(_t, t->process && t->process->stderrBuffer.count ? kTaskState_Failed : kTaskState_Succeeded);
+			if(res.exitCode == 0) {
+				task_set_state(_t, kTaskState_Succeeded);
+			} else {
+				task_set_state(_t, kTaskState_Failed);
+			}
 		}
 	} else {
 		task_set_state(_t, kTaskState_Failed);

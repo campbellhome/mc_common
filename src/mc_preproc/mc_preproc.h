@@ -43,13 +43,15 @@ struct struct_s {
 	bool autovalidate;
 	bool headerOnly;
 	bool fromLoc;
+	bool jsonSerialization;
+	bool bStringHash;
 	std::vector< struct_member_s > members;
 };
 extern std::vector< struct_s > g_structs;
 
 extern std::set< std::string > g_paths;
 
-void GenerateJson(const char *prefix, sb_t *srcDir, sb_t *includeDir);
-void GenerateStructs(const char *prefix, sb_t *srcDir, sb_t *includeDir);
+void GenerateJson(const char *prefix, const char *includePrefix, sb_t *srcDir, sb_t *includeDir);
+void GenerateStructs(const char *prefix, const char *includePrefix, sb_t *srcDir, sb_t *includeDir);
 
 void find_files_in_dir(const char *dir, const char *desiredExt, sdict_t *sd);
