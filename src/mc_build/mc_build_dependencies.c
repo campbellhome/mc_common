@@ -80,9 +80,11 @@ void buildDependencyTable_trimToken(span_t *token)
 	span_trim_char_end(token, ':');
 }
 
-void buildDependencyTable_insertFromFile(buildDependencyTable *table, const char *dependenciesPath, const char *sourcePath)
+void buildDependencyTable_insertFromFile(buildDependencyTable *table, const char *dependenciesPath, const char *sourcePath, b32 bDebug)
 {
-	//BB_LOG("Dependencies", "DepPath: %s / %s", dependenciesPath, sourcePath);
+	if(bDebug) {
+		BB_LOG("Dependencies", "DepPath: %s / %s", dependenciesPath, sourcePath);
+	}
 
 	fileData_t data = fileData_read(dependenciesPath);
 	if(data.buffer) {
@@ -109,10 +111,14 @@ void buildDependencyTable_insertFromFile(buildDependencyTable *table, const char
 				bFirst = false;
 				entry.key = sb_clone(&depPath);
 				path_resolve_inplace(&entry.key);
-				//BB_LOG("Dependencies", "Key: %s", sb_get(&entry.key));
+				if(bDebug) {
+					BB_LOG("Dependencies", "Key: %s", sb_get(&entry.key));
+				}
 				sb_reset(&depPath);
 			} else {
-				//BB_LOG("Dependencies", "Line: %s", sb_get(&depPath));
+				if(bDebug) {
+					("Dependencies", "Line: %s", sb_get(&depPath));
+				}
 				bba_push(entry.deps, depPath);
 			}
 		} while(1);
@@ -134,7 +140,7 @@ void buildDependencyTable_insertFromFile(buildDependencyTable *table, const char
 	}
 }
 
-void buildDependencyTable_insertFromDir(buildDependencyTable *depTable, sourceTimestampTable *timeTable, sbs_t *sourcePaths, const char *sourceDir, const char *objectDir, b32 bRecursive)
+void buildDependencyTable_insertFromDir(buildDependencyTable *depTable, sourceTimestampTable *timeTable, sbs_t *sourcePaths, const char *sourceDir, const char *objectDir, b32 bRecursive, b32 bSourceOnly, b32 bDebug)
 {
 	sb_t dir = sb_from_c_string(sourceDir);
 	path_resolve_inplace(&dir);
@@ -147,14 +153,14 @@ void buildDependencyTable_insertFromDir(buildDependencyTable *depTable, sourceTi
 				if(entry->d_name[0] != '.') {
 					if(bRecursive) {
 						sb_t subDir = sb_from_va("%s\\%s", sourceDir, entry->d_name);
-						buildDependencyTable_insertFromDir(depTable, timeTable, sourcePaths, sb_get(&subDir), objectDir, bRecursive);
+						buildDependencyTable_insertFromDir(depTable, timeTable, sourcePaths, sb_get(&subDir), objectDir, bRecursive, bSourceOnly, bDebug);
 						sb_reset(&subDir);
 					}
 				}
 			} else {
 				const char *ext = strrchr(entry->d_name, '.');
 				if(ext) {
-					if(!bb_stricmp(ext, ".c") || !bb_stricmp(ext, ".cpp") || !bb_stricmp(ext, ".h") || !bb_stricmp(ext, ".o")) {
+					if(!bb_stricmp(ext, ".c") || !bb_stricmp(ext, ".cpp") || (!bSourceOnly && (!bb_stricmp(ext, ".h") || !bb_stricmp(ext, ".o")))) {
 						sb_t path = BuildFilePath(dir, entry->d_name);
 
 						if(timeTable) {
@@ -168,7 +174,7 @@ void buildDependencyTable_insertFromDir(buildDependencyTable *depTable, sourceTi
 							sb_t depPath = sb_from_c_string(objectDir);
 							sb_va(&depPath, "%c%.*s.d", path_get_separator(), ext - entry->d_name, entry->d_name);
 							path_resolve_inplace(&depPath);
-							buildDependencyTable_insertFromFile(depTable, sb_get(&depPath), sb_get(&path));
+							buildDependencyTable_insertFromFile(depTable, sb_get(&depPath), sb_get(&path), bDebug);
 							sb_reset(&depPath);
 						}
 
@@ -216,7 +222,7 @@ b32 buildDependencyTable_checkDeps(buildDependencyTable *deps, sourceTimestampTa
 					bUpToDate = false;
 				} else {
 					if(bDebug) {
-						BB_LOG("Timestamps", "%s", depPath);
+						BB_LOG("Timestamps", "  %s", depPath);
 					}
 				}
 			} else {

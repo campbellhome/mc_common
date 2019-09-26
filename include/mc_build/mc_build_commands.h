@@ -28,8 +28,16 @@ AUTOSTRUCT AUTOFROMLOC typedef struct buildCommands_s {
 	buildCommand_t *data;
 } buildCommands_t;
 
+typedef struct buildCommandsState_s {
+	u32 dispatched;
+	u32 active;
+	u32 errorCount;
+	u32 printed;
+	buildCommands_t *commands;
+} buildCommandsState_t;
+
 void buildCommands_push(buildCommands_t *buildCommands, const char *title, const char *dir, const char *command);
-void buildCommands_dispatch(buildCommands_t *buildCommands, u32 maxTasks, b32 bStopOnError, b32 bShowCommands);
+buildCommandsState_t buildCommands_dispatch(buildCommands_t *buildCommands, u32 maxTasks, b32 bStopOnError, b32 bShowCommands);
 
 #if defined(__cplusplus)
 } // extern "C"

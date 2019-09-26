@@ -48,7 +48,7 @@ AUTOSTRUCT AUTOFROMLOC AUTOSTRINGHASH typedef struct buildDependencyTable {
 buildDependencyTable buildDependencyTable_init(u32 buckets);
 sourceTimestampTable sourceTimestampTable_init(u32 buckets);
 
-void buildDependencyTable_insertFromDir(buildDependencyTable *depTable, sourceTimestampTable *timeTable, sbs_t *sourcePaths, const char *sourceDir, const char *objectDir, b32 bRecursive);
+void buildDependencyTable_insertFromDir(buildDependencyTable *depTable, sourceTimestampTable *timeTable, sbs_t *sourcePaths, const char *sourceDir, const char *objectDir, b32 bRecursive, b32 bSourceOnly, b32 bDebug);
 b32 buildDependencyTable_checkDeps(buildDependencyTable *deps, sourceTimestampTable *times, const char *path, b32 bDebug);
 u32 buildDependencyTable_queueCommands(buildCommands_t *commands, buildDependencyTable *deps, sourceTimestampTable *times, sbs_t *sourcePaths, const char *objectDir, b32 bDebug, b32 bRebuild, const char *dir, const char *parameterizedCommand);
 

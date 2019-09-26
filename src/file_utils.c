@@ -17,7 +17,7 @@ void fileData_reset(fileData_t *result)
 
 fileData_t fileData_read(const char *filename)
 {
-	fileData_t result = { 0 };
+	fileData_t result = { BB_EMPTY_INITIALIZER };
 
 	HANDLE handle = CreateFileA(filename, GENERIC_READ, FILE_SHARE_READ, 0, OPEN_EXISTING, 0, 0);
 	if(handle != INVALID_HANDLE_VALUE) {

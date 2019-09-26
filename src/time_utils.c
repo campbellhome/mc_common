@@ -68,7 +68,7 @@ static SYSTEMTIME Time_SystemTimeFromEpochTime(u32 epochTime)
 {
 	// Windows uses 100 nanosecond intervals since Jan 1, 1601 UTC
 	// https://support.microsoft.com/en-us/help/167296/how-to-convert-a-unix-time-t-to-a-win32-filetime-or-systemtime
-	SYSTEMTIME st = { 0 };
+	SYSTEMTIME st = { BB_EMPTY_INITIALIZER };
 	FILETIME ft;
 	u64 ll = (((u64)epochTime) * ((u64)10000000)) + (u64)116444736000000000;
 	ft.dwLowDateTime = (DWORD)ll;

@@ -58,7 +58,7 @@ static void process_report_error(const char *apiName, const char *cmdline, proce
 
 processSpawnResult_t process_spawn(const char *dir, const char *cmdline, processSpawnType_t processSpawnType, processLogType_t processLogType)
 {
-	processSpawnResult_t result = { 0 };
+	processSpawnResult_t result = { BB_EMPTY_INITIALIZER };
 
 	if(!cmdline || !*cmdline)
 		return result;

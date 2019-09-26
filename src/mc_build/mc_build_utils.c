@@ -2,6 +2,8 @@
 // MIT license (see License.txt)
 
 #include "mc_build/mc_build_utils.h"
+#include "bb_array.h"
+#include "bb_string.h"
 #include "path_utils.h"
 
 sb_t buildUtils_objectPathFromSourcePath(const char *objectDir, const char *sourcePath)
@@ -27,4 +29,18 @@ void buildUtils_appendObjects(const char *objectDir, const sbs_t *sourcePaths, s
 		sb_va(command, " %s", sb_get(&objectPath));
 		sb_reset(&objectPath);
 	}
+}
+
+sbs_t buildUtils_filterSourcesByExtension(const sbs_t *src, const char *ext)
+{
+	sbs_t dst = { BB_EMPTY_INITIALIZER };
+	for(u32 i = 0; i < src->count; ++i) {
+		const sb_t *str = src->data + i;
+		const char *srcExt = strrchr(sb_get(str), '.');
+
+		if(srcExt && !bb_stricmp(srcExt, ext)) {
+			bba_push(dst, sb_clone(str));
+		}
+	}
+	return dst;
 }

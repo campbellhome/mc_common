@@ -488,7 +488,7 @@ static void GenerateStructsSource(const char *prefix, const char *includePrefix,
 			sb_va(s, "%s %s_clone(const %s *src)\n", o.name.c_str(), GetMemberType(o.name), o.name.c_str());
 		}
 		sb_append(s, "{\n");
-		sb_va(s, "\t%s dst = { 0 };\n", o.name.c_str());
+		sb_va(s, "\t%s dst = { BB_EMPTY_INITIALIZER };\n", o.name.c_str());
 		sb_append(s, "\tif(src) {\n");
 		if(bbArrayData.bExact) {
 			sb_va(s, "\t\tfor(u32 i = 0; i < src->count; ++i) {\n");

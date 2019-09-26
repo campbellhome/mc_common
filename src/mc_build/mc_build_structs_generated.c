@@ -30,7 +30,7 @@ void buildCommand_reset_from_loc(const char *file, int line, buildCommand_t *val
 }
 buildCommand_t buildCommand_clone_from_loc(const char *file, int line, const buildCommand_t *src)
 {
-	buildCommand_t dst = { 0 };
+	buildCommand_t dst = { BB_EMPTY_INITIALIZER };
 	if(src) {
 		dst.title = sb_clone_from_loc(file, line, &src->title);
 		dst.dir = sb_clone_from_loc(file, line, &src->dir);
@@ -57,7 +57,7 @@ void buildCommands_reset_from_loc(const char *file, int line, buildCommands_t *v
 }
 buildCommands_t buildCommands_clone_from_loc(const char *file, int line, const buildCommands_t *src)
 {
-	buildCommands_t dst = { 0 };
+	buildCommands_t dst = { BB_EMPTY_INITIALIZER };
 	if(src) {
 		for(u32 i = 0; i < src->count; ++i) {
 			if(bba_add_noclear(dst, 1)) {
@@ -76,7 +76,7 @@ void sourceTimestampEntry_reset_from_loc(const char *file, int line, sourceTimes
 }
 sourceTimestampEntry sourceTimestampEntry_clone_from_loc(const char *file, int line, const sourceTimestampEntry *src)
 {
-	sourceTimestampEntry dst = { 0 };
+	sourceTimestampEntry dst = { BB_EMPTY_INITIALIZER };
 	if(src) {
 		dst.key = sb_clone_from_loc(file, line, &src->key);
 		dst.timestamp = src->timestamp;
@@ -95,7 +95,7 @@ void sourceTimestampChain_reset_from_loc(const char *file, int line, sourceTimes
 }
 sourceTimestampChain sourceTimestampChain_clone_from_loc(const char *file, int line, const sourceTimestampChain *src)
 {
-	sourceTimestampChain dst = { 0 };
+	sourceTimestampChain dst = { BB_EMPTY_INITIALIZER };
 	if(src) {
 		for(u32 i = 0; i < src->count; ++i) {
 			if(bba_add_noclear(dst, 1)) {
@@ -117,7 +117,7 @@ void sourceTimestampTable_reset_from_loc(const char *file, int line, sourceTimes
 }
 sourceTimestampTable sourceTimestampTable_clone_from_loc(const char *file, int line, const sourceTimestampTable *src)
 {
-	sourceTimestampTable dst = { 0 };
+	sourceTimestampTable dst = { BB_EMPTY_INITIALIZER };
 	if(src) {
 		for(u32 i = 0; i < src->count; ++i) {
 			if(bba_add_noclear(dst, 1)) {
@@ -137,7 +137,7 @@ void buildDependencyEntry_reset_from_loc(const char *file, int line, buildDepend
 }
 buildDependencyEntry buildDependencyEntry_clone_from_loc(const char *file, int line, const buildDependencyEntry *src)
 {
-	buildDependencyEntry dst = { 0 };
+	buildDependencyEntry dst = { BB_EMPTY_INITIALIZER };
 	if(src) {
 		dst.key = sb_clone_from_loc(file, line, &src->key);
 		dst.deps = sbs_clone_from_loc(file, line, &src->deps);
@@ -156,7 +156,7 @@ void buildDependencyChain_reset_from_loc(const char *file, int line, buildDepend
 }
 buildDependencyChain buildDependencyChain_clone_from_loc(const char *file, int line, const buildDependencyChain *src)
 {
-	buildDependencyChain dst = { 0 };
+	buildDependencyChain dst = { BB_EMPTY_INITIALIZER };
 	if(src) {
 		for(u32 i = 0; i < src->count; ++i) {
 			if(bba_add_noclear(dst, 1)) {
@@ -178,7 +178,7 @@ void buildDependencyTable_reset_from_loc(const char *file, int line, buildDepend
 }
 buildDependencyTable buildDependencyTable_clone_from_loc(const char *file, int line, const buildDependencyTable *src)
 {
-	buildDependencyTable dst = { 0 };
+	buildDependencyTable dst = { BB_EMPTY_INITIALIZER };
 	if(src) {
 		for(u32 i = 0; i < src->count; ++i) {
 			if(bba_add_noclear(dst, 1)) {

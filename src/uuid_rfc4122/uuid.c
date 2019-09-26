@@ -350,7 +350,7 @@ void uuid_node_reset(uuid_node_t *val)
 
 uuid_node_t uuid_node_clone(const uuid_node_t *src)
 {
-	uuid_node_t dst = { 0 };
+	uuid_node_t dst = { BB_EMPTY_INITIALIZER };
 	if(src) {
 		for(u32 i = 0; i < BB_ARRAYSIZE(src->nodeID); ++i) {
 			dst.nodeID[i] = src->nodeID[i];

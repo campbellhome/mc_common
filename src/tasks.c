@@ -138,7 +138,7 @@ task *task_queue_subtask(task *parent, task t)
 void task_tick_subtasks(task *t)
 {
 	if(t->subtasks.count) {
-		u32 states[kTaskState_Count] = { 0 };
+		u32 states[kTaskState_Count] = { BB_EMPTY_INITIALIZER };
 		for(u32 i = 0; i < t->subtasks.count; ++i) {
 			task *s = t->subtasks.data + i;
 			if(!task_started(s)) {

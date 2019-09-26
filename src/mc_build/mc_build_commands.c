@@ -16,14 +16,6 @@ void buildCommands_push(buildCommands_t *buildCommands, const char *title, const
 	bba_push(*buildCommands, buildCommand);
 }
 
-typedef struct buildCommandsState_s {
-	u32 dispatched;
-	u32 active;
-	u32 errorCount;
-	u32 printed;
-	buildCommands_t *commands;
-} buildCommandsState_t;
-
 typedef struct buildCommandLink_s {
 	buildCommand_t *command;
 	buildCommandsState_t *state;
@@ -70,7 +62,7 @@ static void buildCommands_printBuffer(sb_t *sb)
 	} while(1);
 }
 
-void buildCommands_dispatch(buildCommands_t *buildCommands, u32 maxTasks, b32 bStopOnError, b32 bShowCommands)
+buildCommandsState_t buildCommands_dispatch(buildCommands_t *buildCommands, u32 maxTasks, b32 bStopOnError, b32 bShowCommands)
 {
 	buildCommandsState_t state = { BB_EMPTY_INITIALIZER };
 	state.commands = buildCommands;
@@ -128,4 +120,6 @@ void buildCommands_dispatch(buildCommands_t *buildCommands, u32 maxTasks, b32 bS
 			}
 		}
 	};
+
+	return state;
 }
