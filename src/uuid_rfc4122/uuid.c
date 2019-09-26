@@ -7,8 +7,10 @@ __pragma(warning(disable : 4711)); // warning C4711: function 'Decode' selected 
 #include "uuid_rfc4122/uuid.h"
 #include "bb_criticalsection.h"
 #include "bb_string.h"
+#include "parson/parson.h"
 #include "uuid_rfc4122/copyrt.h"
 #include "uuid_rfc4122/sysdep.h"
+#include "va.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -338,4 +340,48 @@ int format_uuid(rfc_uuid *uuid, char *buffer, int bufferSize)
 		buffer[len] = '\0';
 	}
 	return len;
+}
+
+void uuid_node_reset(uuid_node_t *val)
+{
+	if(val) {
+	}
+}
+
+uuid_node_t uuid_node_clone(const uuid_node_t *src)
+{
+	uuid_node_t dst = { 0 };
+	if(src) {
+		for(u32 i = 0; i < BB_ARRAYSIZE(src->nodeID); ++i) {
+			dst.nodeID[i] = src->nodeID[i];
+		}
+	}
+	return dst;
+}
+
+uuid_node_t json_deserialize_uuid_node_t(JSON_Value *src)
+{
+	uuid_node_t dst;
+	memset(&dst, 0, sizeof(dst));
+	if(src) {
+		JSON_Object *obj = json_value_get_object(src);
+		if(obj) {
+			for(u32 i = 0; i < BB_ARRAYSIZE(dst.nodeID); ++i) {
+				dst.nodeID[i] = (char)json_object_get_number(obj, va("nodeID.%u", i));
+			}
+		}
+	}
+	return dst;
+}
+
+JSON_Value *json_serialize_uuid_node_t(const uuid_node_t *src)
+{
+	JSON_Value *val = json_value_init_object();
+	JSON_Object *obj = json_value_get_object(val);
+	if(obj) {
+		for(u32 i = 0; i < BB_ARRAYSIZE(src->nodeID); ++i) {
+			json_object_set_number(obj, va("nodeID.%u", i), src->nodeID[i]);
+		}
+	}
+	return val;
 }

@@ -3,6 +3,9 @@
 #include "bb_string.h"
 #include "cmdline.h"
 #include "crt_leak_check.h"
+#include "mc_preproc_config.h"
+#include "span.h"
+#include "va.h"
 
 #include <memory.h>
 #include <stdint.h>
@@ -21,6 +24,7 @@
 std::vector< enum_s > g_enums;
 std::vector< struct_s > g_structs;
 std::set< std::string > g_paths;
+std::set< std::string > g_ignorePaths;
 bool g_bHeaderOnly;
 const char *g_includePrefix = "";
 
@@ -409,7 +413,9 @@ void find_files_in_dir(const char *dir, const char *desiredExt, sdict_t *sd, boo
 				if(find.cFileName[0] != '.' && bRecurse) {
 					sb_t subdir = {};
 					sb_va(&subdir, "%s\\%s", dir, find.cFileName);
-					find_files_in_dir(sb_get(&subdir), desiredExt, sd, bRecurse);
+					if(g_ignorePaths.find(sb_get(&subdir)) == g_ignorePaths.end()) {
+						find_files_in_dir(sb_get(&subdir), desiredExt, sd, bRecurse);
+					}
 					sb_reset(&subdir);
 				}
 			} else {
@@ -428,7 +434,7 @@ void find_files_in_dir(const char *dir, const char *desiredExt, sdict_t *sd, boo
 	sb_reset(&filter);
 }
 
-static void scanHeaders(const sb_t *scanDir, bool bRecurse)
+static void scanHeaders(const sb_t *scanDir, bool bRecurse, const sb_t *baseDir)
 {
 	BB_LOG("mm_lexer::scan_dir", "^=%s dir: %s", g_bHeaderOnly ? "header" : "src", sb_get(scanDir));
 	sdict_t sd = {};
@@ -442,7 +448,7 @@ static void scanHeaders(const sb_t *scanDir, bool bRecurse)
 			continue;
 
 		BB_LOG("mm_lexer::scan_file", "^8%s", path);
-		mm_lexer_scan_file((char *)contents.buffer, contents.bufferSize, path, scanDir);
+		mm_lexer_scan_file((char *)contents.buffer, contents.bufferSize, path, (baseDir && baseDir->count <= scanDir->count) ? baseDir : scanDir);
 	}
 
 	sdict_reset(&sd);
@@ -487,27 +493,105 @@ void CheckFreeType(sb_t *outDir)
 	sb_reset(&freetypePath);
 }
 
+static sb_t GetConfigRelativePath(const span_t *configDir, const sb_t *dir)
+{
+	sb_t ret = { BB_EMPTY_INITIALIZER };
+	if(configDir->end > configDir->start) {
+		ret = sb_from_va("%.*s/%s", configDir->end - configDir->start, configDir->start, sb_get(dir));
+	} else {
+		ret = sb_clone(dir);
+	}
+	path_resolve_inplace(&ret);
+	return ret;
+}
+
+static void scanHeaders(span_t *configDir, preprocInputDir *inputDir)
+{
+	sb_t scanDir = GetConfigRelativePath(configDir, &inputDir->dir);
+	sb_t baseDir = { BB_EMPTY_INITIALIZER };
+	if(inputDir->base.count) {
+		baseDir = GetConfigRelativePath(configDir, &inputDir->base);
+	} else {
+		baseDir = sb_clone(&scanDir);
+	}
+	scanHeaders(&scanDir, false, &baseDir);
+	sb_reset(&scanDir);
+	sb_reset(&baseDir);
+}
+
+static void InitLogging(b32 bb)
+{
+	for(int i = 1; i < cmdline_argc(); ++i) {
+		if(!bb_stricmp(cmdline_argv(i), "-bb")) {
+			bb = true;
+			break;
+		}
+	}
+
+	if(bb) {
+		BB_INIT("mc_common_preproc");
+	}
+
+	BB_THREAD_SET_NAME("main");
+	BB_LOG("Startup", "Command line: %s", cmdline_get_full());
+
+	char currentDirectory[1024];
+	GetCurrentDirectoryA(sizeof(currentDirectory), currentDirectory);
+	BB_LOG("Startup", "Working Directory: %s", currentDirectory);
+}
+
+static void GenerateFromJson(const char *configPath)
+{
+	span_t configDir = { BB_EMPTY_INITIALIZER };
+	configDir.start = configPath;
+	configDir.end = path_get_filename(configPath);
+	preprocConfig config = read_preprocConfig(configPath);
+	InitLogging(config.bb);
+	printf("Running mc_common_preproc %s\n", path_get_filename(configPath));
+
+	g_bHeaderOnly = true;
+	for(u32 i = 0; i < config.input.includeDirs.count; ++i) {
+		scanHeaders(&configDir, config.input.includeDirs.data + i);
+	}
+	g_bHeaderOnly = false;
+	for(u32 i = 0; i < config.input.sourceDirs.count; ++i) {
+		scanHeaders(&configDir, config.input.sourceDirs.data + i);
+	}
+
+	const char *prefix = sb_get(&config.output.prefix);
+	sb_t outputSourceDir = GetConfigRelativePath(&configDir, &config.output.sourceDir);
+	sb_t outputIncludeDir = GetConfigRelativePath(&configDir, &config.output.includeDir);
+	sb_t outputBaseDir = GetConfigRelativePath(&configDir, &config.output.baseDir);
+	sb_t includePrefix = { BB_EMPTY_INITIALIZER };
+	if(!bb_strnicmp(sb_get(&outputIncludeDir), sb_get(&outputBaseDir), outputBaseDir.count - 1)) {
+		includePrefix = sb_from_va("%s/", sb_get(&outputIncludeDir) + outputBaseDir.count);
+	}
+	GenerateJson(prefix, sb_get(&includePrefix), &outputSourceDir, &outputIncludeDir);
+	GenerateStructs(prefix, sb_get(&includePrefix), &outputSourceDir, &outputIncludeDir);
+	if(config.input.checkFonts) {
+		CheckFreeType(&outputIncludeDir);
+	}
+	sb_reset(&outputSourceDir);
+	sb_reset(&outputIncludeDir);
+	sb_reset(&outputBaseDir);
+	sb_reset(&includePrefix);
+
+	reset_preprocConfig(&config);
+}
+
 int CALLBACK WinMain(_In_ HINSTANCE /*Instance*/, _In_opt_ HINSTANCE /*PrevInstance*/, _In_ LPSTR CommandLine, _In_ int /*ShowCode*/)
 {
 	crt_leak_check_init();
 
 	cmdline_init_composite(CommandLine);
 
-	for(int i = 1; i < cmdline_argc(); ++i) {
-		if(!bb_stricmp(cmdline_argv(i), "-bb")) {
-			BB_INIT("mc_common_preproc");
-			break;
-		}
-	}
-
-	BB_THREAD_SET_NAME("main");
-	BB_LOG("Startup", "Command line: %s", CommandLine);
-
 	const char *prefix = "";
 	sb_t srcDir = { BB_EMPTY_INITIALIZER };
 	sb_t includeDir = { BB_EMPTY_INITIALIZER };
+	sb_t configPath = { BB_EMPTY_INITIALIZER };
 	b32 checkFonts = false;
 
+	std::vector< const char * > deferredArgs;
 	for(int i = 1; i < cmdline_argc(); ++i) {
 		const char *arg = cmdline_argv(i);
 		if(!bb_strnicmp(arg, "-prefix=", 8)) {
@@ -518,61 +602,88 @@ int CALLBACK WinMain(_In_ HINSTANCE /*Instance*/, _In_opt_ HINSTANCE /*PrevInsta
 			sb_append(&srcDir, arg + 5);
 		} else if(!bb_strnicmp(arg, "-include=", 9)) {
 			sb_append(&includeDir, arg + 9);
-		} else if(!bb_stricmp(cmdline_argv(i), "-fonts")) {
-			checkFonts = true;
-		}
-	}
-
-	if(sb_len(&srcDir) < 1) {
-		sb_append(&srcDir, ".");
-	}
-	if(sb_len(&includeDir) < 1) {
-		sb_append(&includeDir, sb_get(&srcDir));
-	}
-
-	path_resolve_inplace(&srcDir);
-	path_resolve_inplace(&includeDir);
-
-	for(int i = 1; i < cmdline_argc(); ++i) {
-		const char *arg = cmdline_argv(i);
-		if(!bb_strnicmp(arg, "-prefix=", 8)) {
-		} else if(!bb_strnicmp(arg, "-includePrefix=", 15)) {
-		} else if(!bb_strnicmp(arg, "-src=", 5)) {
-		} else if(!bb_strnicmp(arg, "-include=", 9)) {
 		} else if(!bb_stricmp(arg, "-fonts")) {
+			checkFonts = true;
+		} else if(!bb_strnicmp(arg, "-config=", 8)) {
+			sb_append(&configPath, arg + 8);
 		} else if(!bb_stricmp(arg, "-bb")) {
-		} else if(!bb_strnicmp(arg, "-header=", 8)) {
-			sb_t scanDir = {};
-			sb_append(&scanDir, arg + 8);
-			path_resolve_inplace(&scanDir);
-			g_bHeaderOnly = true;
-			scanHeaders(&scanDir, true);
-			g_bHeaderOnly = false;
-			sb_reset(&scanDir);
-		} else if(!bb_strnicmp(arg, "-headernorecurse=", 17)) {
-			sb_t scanDir = {};
-			sb_append(&scanDir, arg + 17);
-			path_resolve_inplace(&scanDir);
-			g_bHeaderOnly = true;
-			scanHeaders(&scanDir, false);
-			g_bHeaderOnly = false;
-			sb_reset(&scanDir);
+			// already handled
 		} else {
-			sb_t scanDir = {};
-			sb_append(&scanDir, arg);
-			path_resolve_inplace(&scanDir);
-			scanHeaders(&scanDir, true);
-			sb_reset(&scanDir);
+			// handle later
+			deferredArgs.push_back(arg);
 		}
 	}
 
-	GenerateJson(prefix, g_includePrefix, &srcDir, &includeDir);
-	GenerateStructs(prefix, g_includePrefix, &srcDir, &includeDir);
-	if(checkFonts) {
-		CheckFreeType(&includeDir);
+	if(configPath.data) {
+		GenerateFromJson(sb_get(&configPath));
+	} else {
+		InitLogging(false);
+	}
+
+	if(configPath.count == 0 && 0) {
+		if(sb_len(&srcDir) < 1) {
+			sb_append(&srcDir, ".");
+		}
+		if(sb_len(&includeDir) < 1) {
+			sb_append(&includeDir, sb_get(&srcDir));
+		}
+
+		path_resolve_inplace(&srcDir);
+		path_resolve_inplace(&includeDir);
+
+		bool bHeaderOnly = false;
+		bool bRecurse = true;
+		for(const char *arg : deferredArgs) {
+			if(!bb_stricmp(arg, "-headeronly")) {
+				bHeaderOnly = true;
+			} else if(!bb_stricmp(arg, "-noheaderonly")) {
+				bHeaderOnly = false;
+			} else if(!bb_stricmp(arg, "-recurse")) {
+				bRecurse = true;
+			} else if(!bb_stricmp(arg, "-norecurse")) {
+				bRecurse = false;
+			} else if(!bb_strnicmp(arg, "-ignore=", 8)) {
+				sb_t scanDir = {};
+				sb_append(&scanDir, arg + 8);
+				path_resolve_inplace(&scanDir);
+				g_ignorePaths.insert(sb_get(&scanDir));
+				sb_reset(&scanDir);
+			} else if(!bb_strnicmp(arg, "-header=", 8)) {
+				sb_t scanDir = {};
+				sb_append(&scanDir, arg + 8);
+				path_resolve_inplace(&scanDir);
+				g_bHeaderOnly = true;
+				scanHeaders(&scanDir, true, nullptr);
+				g_bHeaderOnly = false;
+				sb_reset(&scanDir);
+			} else if(!bb_strnicmp(arg, "-headernorecurse=", 17)) {
+				sb_t scanDir = {};
+				sb_append(&scanDir, arg + 17);
+				path_resolve_inplace(&scanDir);
+				g_bHeaderOnly = true;
+				scanHeaders(&scanDir, false, nullptr);
+				g_bHeaderOnly = false;
+				sb_reset(&scanDir);
+			} else {
+				sb_t scanDir = {};
+				sb_append(&scanDir, arg);
+				path_resolve_inplace(&scanDir);
+				g_bHeaderOnly = bHeaderOnly;
+				scanHeaders(&scanDir, bRecurse, nullptr);
+				g_bHeaderOnly = false;
+				sb_reset(&scanDir);
+			}
+		}
+
+		GenerateJson(prefix, g_includePrefix, &srcDir, &includeDir);
+		GenerateStructs(prefix, g_includePrefix, &srcDir, &includeDir);
+		if(checkFonts) {
+			CheckFreeType(&includeDir);
+		}
 	}
 	sb_reset(&srcDir);
 	sb_reset(&includeDir);
+	sb_reset(&configPath);
 
 	BB_SHUTDOWN();
 

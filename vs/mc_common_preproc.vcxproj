@@ -83,12 +83,14 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\src\mc_preproc\mc_preproc_config.c" />
     <ClCompile Include="..\src\mc_preproc\mc_preproc_json.cpp" />
     <ClCompile Include="..\src\mc_preproc\mc_preproc_main.cpp" />
     <ClCompile Include="..\src\mc_preproc\mc_preproc_structs.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\mc_preproc\mc_preproc.h" />
+    <ClInclude Include="..\src\mc_preproc\mc_preproc_config.h" />
   </ItemGroup>
   <Import Project="mc_common_lib.props" />
   <Import Project="..\submodules\bbclient\vs\bbclient_lib.props" />

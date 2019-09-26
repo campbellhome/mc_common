@@ -42,10 +42,11 @@ typedef unsigned char   byte;
 
 #ifndef AUTOJSON
 #define AUTOJSON
+#define AUTOHEADERONLY
 #endif
 
 typedef unsigned64_t uuid_time_t;
-AUTOJSON typedef struct uuid_node_s {
+AUTOJSON AUTOHEADERONLY typedef struct uuid_node_s {
 	char nodeID[6];
 } uuid_node_t;
 

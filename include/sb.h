@@ -75,6 +75,8 @@ void sbs_reset_from_loc(const char *file, int line, sbs_t *sbs);
 typedef struct json_value_t JSON_Value;
 sb_t json_deserialize_sb_t(JSON_Value *src);
 JSON_Value *json_serialize_sb_t(const sb_t *src);
+sbs_t json_deserialize_sbs_t(JSON_Value *src);
+JSON_Value *json_serialize_sbs_t(const sbs_t *src);
 
 #if defined(__cplusplus)
 }
