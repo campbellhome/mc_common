@@ -3,6 +3,7 @@
 
 #include "path_utils.h"
 #include "bb_array.h"
+#include "bb_string.h"
 #include "bb_wrap_stdio.h"
 
 char path_get_separator(void)
@@ -27,77 +28,78 @@ const char *path_get_filename(const char *path)
 
 sb_t path_resolve(sb_t src)
 {
-	sb_t pathData;
-	sb_init(&pathData);
-	sb_t *path = &pathData;
+	sb_t dst = sb_clone(&src);
+	path_resolve_inplace(&dst);
+	return dst;
+}
 
-	const char *in = sb_get(&src);
-	while(*in) {
-		char c = *in;
-		if(c == '/') {
-			c = '\\';
-		}
-
-		b32 handled = false;
-		if(c == '.' && path->count > 1 && path->data[path->count - 2] == '\\') {
-			if(in[1] == '.' && (in[2] == '/' || in[2] == '\\' || !in[2])) {
-				char *prevSep = path->data + path->count - 2;
-				while(prevSep > path->data) {
-					--prevSep;
-					if(*prevSep == '\\') {
-						if(strcmp(prevSep, "\\..\\")) {
-							*prevSep = 0;
-							path->count = (u32)(prevSep - path->data) + 1;
-							sb_append_char(path, '\\');
-							in += 2;
-							if(*in) {
-								++in;
-							}
-							handled = true;
-							break;
-						}
-					}
-				}
-			} else if(in[1] == '/' || in[1] == '\\' || !in[1]) {
-				++in;
-				if(*in) {
-					++in;
-				}
-				handled = true;
-			}
-		}
-
-		if(path->count > 2 && c == '\\' && path->data[path->count - 2] == '\\') {
-			handled = true;
-			++in;
-		}
-
-		if(!handled) {
-			sb_append_char(path, c);
-			++in;
-		}
+void path_add_component(sb_t *path, const char *component)
+{
+	if(path->count > 1 && path->data[path->count - 2] != '/' && path->data[path->count - 2] != '\\') {
+		sb_append_char(path, path_get_separator());
 	}
-
-	if(path->count > 1 && path->data[path->count - 2] == '\\') {
-		path->data[path->count - 2] = '\0';
-		--path->count;
-	}
-
-#if !BB_USING(BB_PLATFORM_WINDOWS)
-	for(u32 i = 0; i < pathData.count; ++i) {
-		if(pathData.data[i] == '\\') {
-			pathData.data[i] = '/';
-		}
-	}
-#endif
-	return pathData;
+	sb_append(path, component);
 }
 
 void path_resolve_inplace(sb_t *path)
 {
-	sb_t tmp = path_resolve(*path);
-	sb_reset(path);
-	*path = tmp;
+	if(!path->data)
+		return;
+
+	const char *cursor = path->data;
+	sbs_t pathTokens = sbs_from_tokenize(&cursor, "/\\");
+
+	path->count = 0;
+	if(path->data[0] == '/' || path->data[0] == '\\') {
+		++path->count;
+		if(path->data[1] == '/' || path->data[1] == '\\') {
+			++path->count;
+		}
+	}
+	path->data[path->count] = '\0';
+	++path->count;
+
+	u32 i = 0;
+	while(i < pathTokens.count) {
+		const char *cur = sb_get(pathTokens.data + i);
+		if(!bb_stricmp(cur, ".")) {
+			sb_reset(pathTokens.data + i);
+			bba_erase(pathTokens, i);
+			if(i > 0) {
+				--i;
+			}
+		} else if(i < pathTokens.count - 1 && bb_stricmp(cur, "..") && !bb_stricmp(sb_get(pathTokens.data + i + 1), "..")) {
+			sb_reset(pathTokens.data + i);
+			bba_erase(pathTokens, i);
+			sb_reset(pathTokens.data + i);
+			bba_erase(pathTokens, i);
+			if(i > 0) {
+				--i;
+			}
+		} else {
+			++i;
+		}
+	}
+
+	for(i = 0; i < pathTokens.count; ++i) {
+		path_add_component(path, sb_get(pathTokens.data + i));
+	}
+
+	sbs_reset(&pathTokens);
+}
+
+b32 path_test_resolve(void)
+{
+	const char *testPathStr = "../../../../program/some//other\\path/../mc_im/././gui/submodules/../../mc_common/include/./..";
+	sb_t testPath = sb_from_c_string(testPathStr);
+	path_resolve_inplace(&testPath);
+	sb_replace_char_inplace(&testPath, '\\', '/');
+	b32 bSuccess = !strcmp(sb_get(&testPath), "../../../../program/some/other/mc_im/mc_common");
+	if(!bSuccess) {
+		BB_ERROR("Path", "Path failed to resolve:\n%s\n%s", testPathStr, sb_get(&testPath));
+	}
+	sb_reset(&testPath);
+	return bSuccess;
 }
 
 void path_remove_filename(sb_t *path)

@@ -14,6 +14,7 @@
 #include "mc_build/mc_build_dependencies.h"
 #include "sb.h"
 #include "sdict.h"
+#include "uuid_rfc4122/sysdep.h"
 
 //////////////////////////////////////////////////////////////////////////
 

@@ -55,3 +55,5 @@ void GenerateJson(const char *prefix, const char *includePrefix, sb_t *srcDir, s
 void GenerateStructs(const char *prefix, const char *includePrefix, sb_t *srcDir, sb_t *includeDir);
 
 void find_files_in_dir(const char *dir, const char *desiredExt, sdict_t *sd);
+
+void ReportFileDataWriteIfChanged(fileData_writeResult result, const char *path);

@@ -6,6 +6,7 @@
 #include "bb_wrap_stdio.h"
 #include "parson/parson.h"
 #include "span.h"
+#include "tokenize.h"
 #include <string.h>
 
 void sb_init(sb_t *sb)
@@ -113,6 +114,15 @@ void sb_move_from_loc(const char *file, int line, sb_t *target, sb_t *src)
 	sb_reset_from_loc(file, line, target);
 	*target = *src;
 	memset(src, 0, sizeof(*src));
+}
+
+void sb_replace_char_inplace(sb_t *sb, char src, char dst)
+{
+	for(u32 i = 0; i < sb->count; ++i) {
+		if(sb->data[i] == src) {
+			sb->data[i] = dst;
+		}
+	}
 }
 
 void sb_append_from_loc(const char *file, int line, sb_t *sb, const char *text)
@@ -342,4 +352,15 @@ sbs_t json_deserialize_sbs_t(JSON_Value *src)
 		}
 	}
 	return dst;
+}
+
+sbs_t sbs_from_tokenize_from_loc(const char *file, int line, const char **bufferCursor, const char *delimiters)
+{
+	sbs_t sbs = { BB_EMPTY_INITIALIZER };
+	span_t token = tokenize(bufferCursor, delimiters);
+	while(token.start) {
+		bba_push_from_loc(file, line, sbs, sb_from_span_from_loc(file, line, token));
+		token = tokenize(bufferCursor, delimiters);
+	}
+	return sbs;
 }

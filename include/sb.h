@@ -45,6 +45,7 @@ AUTOJSON AUTOHEADERONLY AUTOFROMLOC typedef struct sbs_s {
 void sb_init(sb_t *sb);
 void sb_reset_from_loc(const char *file, int line, sb_t *sb);
 u32 sb_len(sb_t *sb);
+void sb_replace_char_inplace(sb_t *sb, char src, char dst);
 sb_t sb_from_span_from_loc(const char *file, int line, span_t span);
 sb_t sb_from_c_string_from_loc(const char *file, int line, const char *src);
 sb_t sb_from_c_string_no_alloc(const char *src);
@@ -71,6 +72,9 @@ const char *sb_get(const sb_t *sb);
 
 sbs_t sbs_clone_from_loc(const char *file, int line, const sbs_t *sbs);
 void sbs_reset_from_loc(const char *file, int line, sbs_t *sbs);
+
+#define sbs_from_tokenize(bufferCursor, delimiters) sbs_from_tokenize_from_loc(__FILE__, __LINE__, bufferCursor, delimiters);
+sbs_t sbs_from_tokenize_from_loc(const char *file, int line, const char **bufferCursor, const char *delimiters);
 
 typedef struct json_value_t JSON_Value;
 sb_t json_deserialize_sb_t(JSON_Value *src);

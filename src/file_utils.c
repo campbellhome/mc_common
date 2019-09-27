@@ -78,14 +78,14 @@ b32 fileData_write(const char *pathname, const char *tempPathname, fileData_t da
 	return result;
 }
 
-b32 fileData_writeIfChanged(const char *pathname, const char *tempPathname, fileData_t data)
+fileData_writeResult fileData_writeIfChanged(const char *pathname, const char *tempPathname, fileData_t data)
 {
-	b32 result = true;
+	fileData_writeResult result = kFileData_Error;
 	fileData_t orig = fileData_read(pathname);
 	if(orig.buffer && data.buffer && orig.bufferSize == data.bufferSize && !memcmp(orig.buffer, data.buffer, data.bufferSize)) {
-		// contents are unchanged
+		result = kFileData_Unmodified;
 	} else {
-		result = fileData_write(pathname, tempPathname, data);
+		result = fileData_write(pathname, tempPathname, data) ? kFileData_Success : kFileData_Error;
 	}
 	fileData_reset(&orig);
 	return result;
@@ -185,14 +185,14 @@ b32 fileData_write(const char *pathname, const char *tempPathname, fileData_t da
 	return result;
 }
 
-b32 fileData_writeIfChanged(const char *pathname, const char *tempPathname, fileData_t data)
+fileData_writeResult fileData_writeIfChanged(const char *pathname, const char *tempPathname, fileData_t data)
 {
-	b32 result = true;
+	fileData_writeResult result = kFileData_Error;
 	fileData_t orig = fileData_read(pathname);
 	if(orig.buffer && data.buffer && orig.bufferSize == data.bufferSize && !memcmp(orig.buffer, data.buffer, data.bufferSize)) {
-		// contents are unchanged
+		result = kFileData_Unmodified;
 	} else {
-		result = fileData_write(pathname, tempPathname, data);
+		result = fileData_write(pathname, tempPathname, data) ? kFileData_Success : kFileData_Error;
 	}
 	fileData_reset(&orig);
 	return result;

@@ -74,9 +74,7 @@ static void GenerateJsonHeader(const char *prefix, sb_t *srcDir)
 	sb_t path;
 	sb_init(&path);
 	sb_va(&path, "%s\\%sjson_generated.h", sb_get(srcDir), prefix);
-	if(fileData_writeIfChanged(sb_get(&path), NULL, { data.data, sb_len(s) })) {
-		BB_LOG("preproc", "updated %s", sb_get(&path));
-	}
+	ReportFileDataWriteIfChanged(fileData_writeIfChanged(sb_get(&path), NULL, { data.data, sb_len(s) }), sb_get(&path));
 	sb_reset(&path);
 	sb_reset(&data);
 }
@@ -351,9 +349,7 @@ static void GenerateJsonSource(const char *prefix, const char *includePrefix, sb
 	sb_t path;
 	sb_init(&path);
 	sb_va(&path, "%s\\%sjson_generated.c", sb_get(srcDir), prefix);
-	if(fileData_writeIfChanged(sb_get(&path), NULL, { data.data, sb_len(s) })) {
-		BB_LOG("preproc", "updated %s", sb_get(&path));
-	}
+	ReportFileDataWriteIfChanged(fileData_writeIfChanged(sb_get(&path), NULL, { data.data, sb_len(s) }), sb_get(&path));
 	sb_reset(&path);
 	sb_reset(&data);
 }

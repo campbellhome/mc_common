@@ -485,12 +485,25 @@ void CheckFreeType(sb_t *outDir)
 	sb_t path;
 	sb_init(&path);
 	sb_va(&path, "%s\\fonts_generated.h", sb_get(outDir));
-	if(fileData_writeIfChanged(sb_get(&path), NULL, { data.data, sb_len(s) })) {
-		BB_LOG("preproc", "updated %s", sb_get(&path));
-	}
+	ReportFileDataWriteIfChanged(fileData_writeIfChanged(sb_get(&path), NULL, { data.data, sb_len(s) }), sb_get(&path));
 	sb_reset(&path);
 	sb_reset(&data);
 	sb_reset(&freetypePath);
+}
+
+void ReportFileDataWriteIfChanged(fileData_writeResult result, const char *path)
+{
+	switch(result) {
+	case kFileData_Error:
+		BB_ERROR("preproc", "Failed to update %s", path);
+		break;
+	case kFileData_Success:
+		BB_LOG("preproc", "updated %s", path);
+		break;
+	case kFileData_Unmodified:
+		BB_LOG("preproc", "Skipped updating %s", path);
+		break;
+	}
 }
 
 static sb_t GetConfigRelativePath(const span_t *configDir, const sb_t *dir)
@@ -530,6 +543,7 @@ static void InitLogging(b32 bb)
 
 	if(bb) {
 		BB_INIT("mc_common_preproc");
+		bb_set_send_callback(&bb_echo_to_stdout, nullptr);
 	}
 
 	BB_THREAD_SET_NAME("main");
@@ -549,6 +563,12 @@ static void GenerateFromJson(const char *configPath)
 	InitLogging(config.bb);
 	printf("Running mc_common_preproc %s\n", path_get_filename(configPath));
 
+	if(!config.input.sourceDirs.count && !config.input.includeDirs.count) {
+		BB_ERROR("Config", "Empty config - bailing");
+		reset_preprocConfig(&config);
+		return;
+	}
+
 	g_bHeaderOnly = true;
 	for(u32 i = 0; i < config.input.includeDirs.count; ++i) {
 		scanHeaders(&configDir, config.input.includeDirs.data + i);
@@ -563,7 +583,9 @@ static void GenerateFromJson(const char *configPath)
 	sb_t outputIncludeDir = GetConfigRelativePath(&configDir, &config.output.includeDir);
 	sb_t outputBaseDir = GetConfigRelativePath(&configDir, &config.output.baseDir);
 	sb_t includePrefix = { BB_EMPTY_INITIALIZER };
-	if(!bb_strnicmp(sb_get(&outputIncludeDir), sb_get(&outputBaseDir), outputBaseDir.count - 1)) {
+
+	if(config.output.baseDir.count < config.output.includeDir.count &&
+	   !bb_strnicmp(sb_get(&outputIncludeDir), sb_get(&outputBaseDir), outputBaseDir.count - 1)) {
 		includePrefix = sb_from_va("%s/", sb_get(&outputIncludeDir) + outputBaseDir.count);
 	}
 	GenerateJson(prefix, sb_get(&includePrefix), &outputSourceDir, &outputIncludeDir);
