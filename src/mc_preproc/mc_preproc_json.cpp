@@ -3,9 +3,6 @@
 
 #include "mc_preproc.h"
 
-#include "file_utils.h"
-#include "sdict.h"
-
 static void GenerateJsonHeader(const char *prefix, sb_t *srcDir)
 {
 	sb_t data;

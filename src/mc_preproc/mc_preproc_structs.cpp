@@ -2,9 +2,6 @@
 #define _ITERATOR_DEBUG_LEVEL 0
 
 #include "mc_preproc.h"
-
-#include "file_utils.h"
-#include "sdict.h"
 #include "va.h"
 
 static bool EndsWith(const std::string &str, const char *substr)
