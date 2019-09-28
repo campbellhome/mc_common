@@ -71,11 +71,7 @@ static void GenerateJsonHeader(const char *prefix, sb_t *srcDir)
 
 	sb_replace_all_inplace(s, "\n", "\r\n");
 
-	sb_t path;
-	sb_init(&path);
-	sb_va(&path, "%s\\%sjson_generated.h", sb_get(srcDir), prefix);
-	ReportFileDataWriteIfChanged(fileData_writeIfChanged(sb_get(&path), NULL, { data.data, sb_len(s) }), sb_get(&path));
-	sb_reset(&path);
+	WriteAndReportFileData(s, srcDir, prefix, "json_generated.h");
 	sb_reset(&data);
 }
 
@@ -346,11 +342,7 @@ static void GenerateJsonSource(const char *prefix, const char *includePrefix, sb
 
 	sb_replace_all_inplace(s, "\n", "\r\n");
 
-	sb_t path;
-	sb_init(&path);
-	sb_va(&path, "%s\\%sjson_generated.c", sb_get(srcDir), prefix);
-	ReportFileDataWriteIfChanged(fileData_writeIfChanged(sb_get(&path), NULL, { data.data, sb_len(s) }), sb_get(&path));
-	sb_reset(&path);
+	WriteAndReportFileData(s, srcDir, prefix, "json_generated.c");
 	sb_reset(&data);
 }
 

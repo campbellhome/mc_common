@@ -482,16 +482,12 @@ void CheckFreeType(sb_t *outDir)
 		sb_append(s, "#define FEATURE_FREETYPE BB_OFF\n");
 	}
 
-	sb_t path;
-	sb_init(&path);
-	sb_va(&path, "%s\\fonts_generated.h", sb_get(outDir));
-	ReportFileDataWriteIfChanged(fileData_writeIfChanged(sb_get(&path), NULL, { data.data, sb_len(s) }), sb_get(&path));
-	sb_reset(&path);
+	WriteAndReportFileData(s, outDir, "", "fonts_generated.h");
 	sb_reset(&data);
 	sb_reset(&freetypePath);
 }
 
-void ReportFileDataWriteIfChanged(fileData_writeResult result, const char *path)
+static void ReportFileDataWriteIfChanged(fileData_writeResult result, const char *path)
 {
 	switch(result) {
 	case kFileData_Error:
@@ -504,6 +500,14 @@ void ReportFileDataWriteIfChanged(fileData_writeResult result, const char *path)
 		BB_LOG("preproc", "Skipped updating %s", path);
 		break;
 	}
+}
+
+void WriteAndReportFileData(sb_t *data, sb_t *srcDir, const char *prefix, const char *suffix)
+{
+	sb_t path = sb_clone(srcDir);
+	path_add_component(&path, va("%s%s", prefix, suffix));
+	ReportFileDataWriteIfChanged(fileData_writeIfChanged(sb_get(&path), NULL, { data->data, sb_len(data) }), sb_get(&path));
+	sb_reset(&path);
 }
 
 static sb_t GetConfigRelativePath(const span_t *configDir, const sb_t *dir)

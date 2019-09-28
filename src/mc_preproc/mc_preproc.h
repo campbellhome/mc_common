@@ -56,4 +56,4 @@ void GenerateStructs(const char *prefix, const char *includePrefix, sb_t *srcDir
 
 void find_files_in_dir(const char *dir, const char *desiredExt, sdict_t *sd);
 
-void ReportFileDataWriteIfChanged(fileData_writeResult result, const char *path);
+void WriteAndReportFileData(sb_t *data, sb_t *srcDir, const char *prefix, const char *suffix);
