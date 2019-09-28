@@ -487,26 +487,23 @@ void CheckFreeType(sb_t *outDir)
 	sb_reset(&freetypePath);
 }
 
-static void ReportFileDataWriteIfChanged(fileData_writeResult result, const char *path)
-{
-	switch(result) {
-	case kFileData_Error:
-		BB_ERROR("preproc", "Failed to update %s", path);
-		break;
-	case kFileData_Success:
-		BB_LOG("preproc", "updated %s", path);
-		break;
-	case kFileData_Unmodified:
-		BB_LOG("preproc", "Skipped updating %s", path);
-		break;
-	}
-}
-
 void WriteAndReportFileData(sb_t *data, sb_t *srcDir, const char *prefix, const char *suffix)
 {
 	sb_t path = sb_clone(srcDir);
 	path_add_component(&path, va("%s%s", prefix, suffix));
-	ReportFileDataWriteIfChanged(fileData_writeIfChanged(sb_get(&path), NULL, { data->data, sb_len(data) }), sb_get(&path));
+	const char *pathName = sb_get(&path);
+	fileData_writeResult result = fileData_writeIfChanged(pathName, NULL, { data->data, sb_len(data) });
+	switch(result) {
+	case kFileData_Error:
+		BB_ERROR("preproc", "Failed to update %s", pathName);
+		break;
+	case kFileData_Success:
+		BB_LOG("preproc", "updated %s", pathName);
+		break;
+	case kFileData_Unmodified:
+		BB_LOG("preproc", "Skipped updating %s", pathName);
+		break;
+	}
 	sb_reset(&path);
 }
 
