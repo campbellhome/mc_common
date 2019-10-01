@@ -26,6 +26,7 @@ struct enum_s {
 	std::string typedefBaseName;
 	std::string defaultVal;
 	std::vector< enum_member_s > members;
+	bool headerOnly;
 };
 extern std::vector< enum_s > g_enums;
 
@@ -53,7 +54,5 @@ extern std::set< std::string > g_paths;
 
 void GenerateJson(const char *prefix, const char *includePrefix, sb_t *srcDir, sb_t *includeDir);
 void GenerateStructs(const char *prefix, const char *includePrefix, sb_t *srcDir, sb_t *includeDir);
-
-void find_files_in_dir(const char *dir, const char *desiredExt, sdict_t *sd);
 
 void WriteAndReportFileData(sb_t *data, sb_t *srcDir, const char *prefix, const char *suffix);

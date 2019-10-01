@@ -47,7 +47,7 @@ std::string lexer_token_string(const lexer_token &tok)
 	return buffer;
 }
 
-bool mm_lexer_parse_enum(lexer *lex, std::string defaultVal, bool isTypedef)
+bool mm_lexer_parse_enum(lexer *lex, std::string defaultVal, bool isTypedef, bool headerOnly)
 {
 	lexer_token name;
 	if(!lexer_read_on_line(lex, &name))
@@ -55,6 +55,7 @@ bool mm_lexer_parse_enum(lexer *lex, std::string defaultVal, bool isTypedef)
 
 	BB_LOG("mm_lexer", "AUTOJSON enum %s", lexer_token_string(name).c_str());
 	enum_s e = { lexer_token_string(name), "" };
+	e.headerOnly = headerOnly;
 
 	lexer_token tok;
 	if(!lexer_expect_type(lex, LEXER_TOKEN_PUNCTUATION, LEXER_PUNCT_BRACE_OPEN, &tok))
@@ -336,9 +337,10 @@ static void mm_lexer_scan_file_for_keyword(const char *text, lexer_size text_len
 	bool jsonSerialization = !bb_stricmp(keyword, "AUTOJSON");
 	bool foundAny = false;
 	while(lexer_skip_until(&lex, keyword)) {
+		bool headerOnly = g_bHeaderOnly;
 		bool isTypedef = lexer_check_string(&lex, "typedef");
 		if(lexer_check_string(&lex, "enum")) {
-			foundAny = mm_lexer_parse_enum(&lex, "", isTypedef) || foundAny;
+			foundAny = mm_lexer_parse_enum(&lex, "", isTypedef, headerOnly) || foundAny;
 		} else if(lexer_check_string(&lex, "AUTODEFAULT")) {
 			std::string defaultVal;
 			lexer_token tok;
@@ -351,7 +353,7 @@ static void mm_lexer_scan_file_for_keyword(const char *text, lexer_size text_len
 								isTypedef = true;
 							}
 							if(lexer_check_string(&lex, "enum")) {
-								foundAny = mm_lexer_parse_enum(&lex, defaultVal, isTypedef) || foundAny;
+								foundAny = mm_lexer_parse_enum(&lex, defaultVal, isTypedef, headerOnly) || foundAny;
 							}
 						}
 					}
@@ -359,7 +361,6 @@ static void mm_lexer_scan_file_for_keyword(const char *text, lexer_size text_len
 			}
 		} else {
 			bool autovalidate = false;
-			bool headerOnly = g_bHeaderOnly;
 			bool fromLoc = false;
 			bool bStringHash = false;
 

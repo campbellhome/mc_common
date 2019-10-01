@@ -304,6 +304,8 @@ static void GenerateJsonSource(const char *prefix, const char *includePrefix, sb
 	sb_append(s, "//////////////////////////////////////////////////////////////////////////\n");
 	sb_append(s, "\n");
 	for(const enum_s &o : g_enums) {
+		if(o.headerOnly)
+			continue;
 		sb_va(s, "%s json_deserialize_%s(JSON_Value *src)\n", o.name.c_str(), o.name.c_str());
 		sb_append(s, "{\n");
 		sb_va(s, "\t%s dst = %s;\n", o.name.c_str(), o.defaultVal.c_str());
@@ -322,6 +324,8 @@ static void GenerateJsonSource(const char *prefix, const char *includePrefix, sb
 	sb_append(s, "//////////////////////////////////////////////////////////////////////////\n");
 	sb_append(s, "\n");
 	for(const enum_s &o : g_enums) {
+		if(o.headerOnly)
+			continue;
 		sb_va(s, "JSON_Value *json_serialize_%s(const %s src)\n", o.name.c_str(), o.name.c_str());
 		sb_append(s, "{\n");
 		sb_append(s, "\tconst char *str = \"\";\n");
