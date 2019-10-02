@@ -1,11 +1,8 @@
 #include "mc_preproc.h"
 
+#include "bb_file.h"
 #include "bb_string.h"
-#include "cmdline.h"
-#include "crt_leak_check.h"
 #include "mc_preproc_config.h"
-#include "span.h"
-#include "va.h"
 
 #include <memory.h>
 #include <stdint.h>
@@ -15,11 +12,30 @@
 
 #define LEXER_IMPLEMENTATION
 #define LEXER_STATIC
-#include "mmx/lexer.h"
+#include "../../submodules/mmx/lexer.h"
 
-#include "parson/parson.h"
+#include "../../submodules/parson/parson.c"
 
 #include <windows.h>
+
+#if BB_USING(BB_PLATFORM_WINDOWS) && BB_USING(BB_COMPILER_MSVC) && defined(_DEBUG)
+#include <crtdbg.h>
+void crt_leak_check_init(void)
+{
+	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
+	_CrtSetReportMode(_CRT_WARN, _CRTDBG_MODE_DEBUG);
+	_CrtSetReportMode(_CRT_ERROR, _CRTDBG_MODE_DEBUG);
+}
+#else
+void crt_leak_check_init(void)
+{
+}
+#endif
+
+typedef struct span_s {
+	const char *start;
+	const char *end;
+} span_t;
 
 std::vector< enum_s > g_enums;
 std::vector< struct_s > g_structs;
@@ -278,18 +294,18 @@ bool mm_lexer_parse_struct(lexer *lex, bool autovalidate, bool headerOnly, bool 
 
 	//BB_LOG("mm_lexer", "struct end");
 
-	sb_t sb = {};
-	sb_append(&sb, "AUTOJSON ");
+	std::string sb;
+	va(sb, "AUTOJSON ");
 	if(isTypedef) {
-		sb_append(&sb, "typedef ");
+		va(sb, "typedef ");
 	} else {
-		sb_append(&sb, "struct ");
+		va(sb, "struct ");
 	}
 
 	if(autovalidate) {
-		sb_append(&sb, "with AUTOVALIDATE ");
+		va(sb, "with AUTOVALIDATE ");
 	}
-	sb_va(&sb, "'%s'\n", s.name.c_str());
+	va(sb, "'%s'\n", s.name.c_str());
 
 	for(auto &m : s.members) {
 		std::string ps;
@@ -312,21 +328,20 @@ bool mm_lexer_parse_struct(lexer *lex, bool autovalidate, bool headerOnly, bool 
 		}
 
 		if(!m.val.empty()) {
-			sb_va(&sb, "  %s %s = %s\n", m.typeStr.c_str(), m.name.c_str(), m.val.c_str());
+			va(sb, "  %s %s = %s\n", m.typeStr.c_str(), m.name.c_str(), m.val.c_str());
 		} else if(!m.arr.empty()) {
-			sb_va(&sb, "  %s %s[%s]\n", m.typeStr.c_str(), m.name.c_str(), m.arr.c_str());
+			va(sb, "  %s %s[%s]\n", m.typeStr.c_str(), m.name.c_str(), m.arr.c_str());
 		} else {
-			sb_va(&sb, "  %s %s\n", m.typeStr.c_str(), m.name.c_str());
+			va(sb, "  %s %s\n", m.typeStr.c_str(), m.name.c_str());
 		}
 	}
 	g_structs.push_back(s);
 
-	BB_LOG("mm_lexer", "%s", sb_get(&sb));
-	sb_reset(&sb);
+	BB_LOG("mm_lexer", "%s", sb.c_str());
 	return true;
 }
 
-static void mm_lexer_scan_file_for_keyword(const char *text, lexer_size text_length, const char *path, const sb_t *basePath, const char *keyword)
+static void mm_lexer_scan_file_for_keyword(const char *text, lexer_size text_length, const char *path, const char *basePath, const char *keyword)
 {
 	/* initialize lexer */
 	lexer lex;
@@ -387,331 +402,200 @@ static void mm_lexer_scan_file_for_keyword(const char *text, lexer_size text_len
 	}
 
 	if(foundAny) {
+		size_t basePathLen = strlen(basePath) + 1;
 		if(g_bHeaderOnly) {
-			g_paths.insert(path + basePath->count);
+			g_paths.insert(path + basePathLen);
 		} else {
-			g_paths.insert((std::string)g_includePrefix + (path + basePath->count));
+			g_paths.insert((std::string)g_includePrefix + (path + basePathLen));
 		}
 	}
 }
 
-void mm_lexer_scan_file(const char *text, lexer_size text_length, const char *path, const sb_t *basePath)
+void mm_lexer_scan_file(const char *text, lexer_size text_length, const char *path, const char *basePath)
 {
 	mm_lexer_scan_file_for_keyword(text, text_length, path, basePath, "AUTOJSON");
 	mm_lexer_scan_file_for_keyword(text, text_length, path, basePath, "AUTOSTRUCT");
 }
 
-void find_files_in_dir(const char *dir, const char *desiredExt, sdict_t *sd, bool bRecurse)
+void find_files_in_dir(const char *dir, const char *desiredExt, std::set< std::string > &sd, bool bRecurse)
 {
 	WIN32_FIND_DATA find;
 	HANDLE hFind;
 
-	sb_t filter = {};
-	sb_va(&filter, "%s\\*.*", dir);
-	if(INVALID_HANDLE_VALUE != (hFind = FindFirstFileA(sb_get(&filter), &find))) {
+	std::string filter;
+	va(filter, "%s\\*.*", dir);
+	if(INVALID_HANDLE_VALUE != (hFind = FindFirstFileA(filter.c_str(), &find))) {
 		do {
 			if(find.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
 				if(find.cFileName[0] != '.' && bRecurse) {
-					sb_t subdir = {};
-					sb_va(&subdir, "%s\\%s", dir, find.cFileName);
-					if(g_ignorePaths.find(sb_get(&subdir)) == g_ignorePaths.end()) {
-						find_files_in_dir(sb_get(&subdir), desiredExt, sd, bRecurse);
+					std::string subdir;
+					va(subdir, "%s\\%s", dir, find.cFileName);
+					if(g_ignorePaths.find(subdir.c_str()) == g_ignorePaths.end()) {
+						find_files_in_dir(subdir.c_str(), desiredExt, sd, bRecurse);
 					}
-					sb_reset(&subdir);
 				}
 			} else {
 				const char *ext = strrchr(find.cFileName, '.');
 				if(ext && !_stricmp(ext, desiredExt)) {
-					sdictEntry_t entry = {};
-					sb_va(&entry.key, "%s\\%s", dir, find.cFileName);
-					path_resolve_inplace(&entry.key);
-					sb_append(&entry.value, find.cFileName);
-					sdict_add(sd, &entry);
+					sd.insert(ResolvePath(va("%s\\%s", dir, find.cFileName)));
 				}
 			}
 		} while(FindNextFileA(hFind, &find));
 		FindClose(hFind);
 	}
-	sb_reset(&filter);
 }
 
-static void scanHeaders(const sb_t *scanDir, bool bRecurse, const sb_t *baseDir)
+static void scanHeaders(const std::string &scanDir, bool bRecurse, const std::string &baseDir)
 {
-	BB_LOG("mm_lexer::scan_dir", "^=%s dir: %s", g_bHeaderOnly ? "header" : "src", sb_get(scanDir));
-	sdict_t sd = {};
-	find_files_in_dir(sb_get(scanDir), ".h", &sd, bRecurse);
-	sdict_sort(&sd);
+	BB_LOG("mm_lexer::scan_dir", "^=%s dir: %s", g_bHeaderOnly ? "header" : "src", scanDir.c_str());
+	std::set< std::string > sd;
+	find_files_in_dir(scanDir.c_str(), ".h", sd, bRecurse);
 
-	for(u32 i = 0; i < sd.count; ++i) {
-		const char *path = sb_get(&sd.data[i].key);
-		fileData_t contents = fileData_read(path);
-		if(!contents.buffer)
+	for(const std::string &path : sd) {
+		std::string contents = ReadFileContents(path);
+		if(contents.empty())
 			continue;
 
-		BB_LOG("mm_lexer::scan_file", "^8%s", path);
-		mm_lexer_scan_file((char *)contents.buffer, contents.bufferSize, path, (baseDir && baseDir->count <= scanDir->count) ? baseDir : scanDir);
+		BB_LOG("mm_lexer::scan_file", "^8%s", path.c_str());
+		mm_lexer_scan_file(contents.c_str(), (lexer_size)contents.length(), path.c_str(), (!baseDir.empty() && baseDir.length() <= scanDir.length()) ? baseDir.c_str() : scanDir.c_str());
 	}
-
-	sdict_reset(&sd);
 }
 
-void CheckFreeType(sb_t *outDir)
+void CheckFreeType(const char *outDir)
 {
-	sb_t data;
-	sb_init(&data);
-	sb_t *s = &data;
+	std::string s;
 
-	sb_t freetypePath;
-	sb_init(&freetypePath);
-	sb_va(&freetypePath, "%s\\..\\submodules\\freetype\\include\\freetype\\freetype.h", sb_get(outDir));
-	path_resolve_inplace(&freetypePath);
+	std::string freetypePath = va("%s\\..\\submodules\\freetype\\include\\freetype\\freetype.h", outDir);
+	freetypePath = ResolvePath(freetypePath);
 
-	sb_append(s, "// Copyright (c) 2012-2019 Matt Campbell\n");
-	sb_append(s, "// MIT license (see License.txt)\n");
-	sb_append(s, "\n");
-	sb_append(s, "// AUTOGENERATED FILE - DO NOT EDIT\n");
-	sb_append(s, "\n");
-	sb_append(s, "// clang-format off\n");
-	sb_append(s, "\n");
-	sb_append(s, "#pragma once\n");
-	sb_append(s, "\n");
-	sb_append(s, "#include \"bb_common.h\"\n");
-	sb_append(s, "\n");
-	if(file_readable(sb_get(&freetypePath))) {
-		sb_append(s, "#define FEATURE_FREETYPE BB_ON\n");
+	va(s, "// Copyright (c) 2012-2019 Matt Campbell\n");
+	va(s, "// MIT license (see License.txt)\n");
+	va(s, "\n");
+	va(s, "// AUTOGENERATED FILE - DO NOT EDIT\n");
+	va(s, "\n");
+	va(s, "// clang-format off\n");
+	va(s, "\n");
+	va(s, "#pragma once\n");
+	va(s, "\n");
+	va(s, "#include \"bb_common.h\"\n");
+	va(s, "\n");
+	if(bb_file_readable(freetypePath.c_str())) {
+		va(s, "#define FEATURE_FREETYPE BB_ON\n");
 	} else {
-		sb_append(s, "#define FEATURE_FREETYPE BB_OFF\n");
+		va(s, "#define FEATURE_FREETYPE BB_OFF\n");
 	}
 
+	s = ReplaceChar(s, '\n', "\r\n");
 	WriteAndReportFileData(s, outDir, "", "fonts_generated.h");
-	sb_reset(&data);
-	sb_reset(&freetypePath);
 }
 
-void WriteAndReportFileData(sb_t *data, sb_t *srcDir, const char *prefix, const char *suffix)
+static std::string GetConfigRelativePath(const span_t *configDir, const char *dir)
 {
-	sb_t path = sb_clone(srcDir);
-	path_add_component(&path, va("%s%s", prefix, suffix));
-	const char *pathName = sb_get(&path);
-	fileData_writeResult result = fileData_writeIfChanged(pathName, NULL, { data->data, sb_len(data) });
-	switch(result) {
-	case kFileData_Error:
-		BB_ERROR("preproc", "Failed to update %s", pathName);
-		break;
-	case kFileData_Success:
-		BB_LOG("preproc", "updated %s", pathName);
-		break;
-	case kFileData_Unmodified:
-		BB_LOG("preproc", "Skipped updating %s", pathName);
-		break;
-	}
-	sb_reset(&path);
-}
-
-static sb_t GetConfigRelativePath(const span_t *configDir, const sb_t *dir)
-{
-	sb_t ret = { BB_EMPTY_INITIALIZER };
+	std::string ret;
 	if(configDir->end > configDir->start) {
-		ret = sb_from_va("%.*s/%s", configDir->end - configDir->start, configDir->start, sb_get(dir));
+		va(ret, "%.*s/%s", configDir->end - configDir->start, configDir->start, dir);
 	} else {
-		ret = sb_clone(dir);
+		ret = dir;
 	}
-	path_resolve_inplace(&ret);
+	ret = ResolvePath(ret);
 	return ret;
 }
 
-static void scanHeaders(span_t *configDir, preprocInputDir *inputDir)
+static void scanHeaders(span_t *configDir, const preprocInputDir *inputDir)
 {
-	sb_t scanDir = GetConfigRelativePath(configDir, &inputDir->dir);
-	sb_t baseDir = { BB_EMPTY_INITIALIZER };
-	if(inputDir->base.count) {
-		baseDir = GetConfigRelativePath(configDir, &inputDir->base);
+	std::string scanDir = GetConfigRelativePath(configDir, inputDir->dir.c_str());
+	std::string baseDir;
+	if(inputDir->base.empty()) {
+		baseDir = scanDir;
 	} else {
-		baseDir = sb_clone(&scanDir);
+		baseDir = GetConfigRelativePath(configDir, inputDir->base.c_str());
 	}
-	scanHeaders(&scanDir, false, &baseDir);
-	sb_reset(&scanDir);
-	sb_reset(&baseDir);
+	scanHeaders(scanDir, false, baseDir);
 }
 
-static void InitLogging(b32 bb)
+static void InitLogging(b32 bb, const char *configPath)
 {
-	for(int i = 1; i < cmdline_argc(); ++i) {
-		if(!bb_stricmp(cmdline_argv(i), "-bb")) {
-			bb = true;
-			break;
-		}
-	}
-
 	if(bb) {
 		BB_INIT("mc_common_preproc");
 		bb_set_send_callback(&bb_echo_to_stdout, nullptr);
 	}
 
 	BB_THREAD_SET_NAME("main");
-	BB_LOG("Startup", "Command line: %s", cmdline_get_full());
+	BB_LOG("Startup", "Running mc_common_preproc %s", configPath);
+
+	if(!bb) {
+		printf("Running mc_common_preproc %s\n", configPath);
+	}
 
 	char currentDirectory[1024];
 	GetCurrentDirectoryA(sizeof(currentDirectory), currentDirectory);
 	BB_LOG("Startup", "Working Directory: %s", currentDirectory);
+
+	TestResolvePath();
 }
 
-static void GenerateFromJson(const char *configPath)
+static void GenerateFromJson(b32 bb, const char *configPath)
 {
 	span_t configDir = { BB_EMPTY_INITIALIZER };
 	configDir.start = configPath;
-	configDir.end = path_get_filename(configPath);
+	configDir.end = GetPathFilename(configPath);
 	preprocConfig config = read_preprocConfig(configPath);
-	InitLogging(config.bb);
-	printf("Running mc_common_preproc %s\n", path_get_filename(configPath));
+	InitLogging(bb || config.bb, GetPathFilename(configPath));
 
-	if(!config.input.sourceDirs.count && !config.input.includeDirs.count) {
+	if(config.input.sourceDirs.empty() && config.input.includeDirs.empty()) {
 		BB_ERROR("Config", "Empty config - bailing");
-		reset_preprocConfig(&config);
 		return;
 	}
 
 	g_bHeaderOnly = true;
-	for(u32 i = 0; i < config.input.includeDirs.count; ++i) {
-		scanHeaders(&configDir, config.input.includeDirs.data + i);
+	for (const preprocInputDir& dir : config.input.includeDirs) {
+		scanHeaders(&configDir, &dir);
 	}
 	g_bHeaderOnly = false;
-	for(u32 i = 0; i < config.input.sourceDirs.count; ++i) {
-		scanHeaders(&configDir, config.input.sourceDirs.data + i);
+	for (const preprocInputDir& dir : config.input.sourceDirs) {
+		scanHeaders(&configDir, &dir);
 	}
 
-	const char *prefix = sb_get(&config.output.prefix);
-	sb_t outputSourceDir = GetConfigRelativePath(&configDir, &config.output.sourceDir);
-	sb_t outputIncludeDir = GetConfigRelativePath(&configDir, &config.output.includeDir);
-	sb_t outputBaseDir = GetConfigRelativePath(&configDir, &config.output.baseDir);
-	sb_t includePrefix = { BB_EMPTY_INITIALIZER };
+	const char *prefix = config.output.prefix.c_str();
+	std::string outputSourceDir = GetConfigRelativePath(&configDir, config.output.sourceDir.c_str());
+	std::string outputIncludeDir = GetConfigRelativePath(&configDir, config.output.includeDir.c_str());
+	std::string outputBaseDir = GetConfigRelativePath(&configDir, config.output.baseDir.c_str());
+	std::string includePrefix;
 
-	if(config.output.baseDir.count < config.output.includeDir.count &&
-	   !bb_strnicmp(sb_get(&outputIncludeDir), sb_get(&outputBaseDir), outputBaseDir.count - 1)) {
-		includePrefix = sb_from_va("%s/", sb_get(&outputIncludeDir) + outputBaseDir.count);
+	if(config.output.baseDir.length() < config.output.includeDir.length() &&
+	   !bb_strnicmp(outputIncludeDir.c_str(), outputBaseDir.c_str(), outputBaseDir.length())) {
+		va(includePrefix, "%s/", outputIncludeDir.c_str() + outputBaseDir.length() + 1);
 	}
-	GenerateJson(prefix, sb_get(&includePrefix), &outputSourceDir, &outputIncludeDir);
-	GenerateStructs(prefix, sb_get(&includePrefix), &outputSourceDir, &outputIncludeDir);
+	GenerateJson(prefix, includePrefix.c_str(), outputSourceDir.c_str(), outputIncludeDir.c_str());
+	GenerateStructs(prefix, includePrefix.c_str(), outputSourceDir.c_str(), outputIncludeDir.c_str());
 	if(config.input.checkFonts) {
-		CheckFreeType(&outputIncludeDir);
+		CheckFreeType(outputIncludeDir.c_str());
 	}
-	sb_reset(&outputSourceDir);
-	sb_reset(&outputIncludeDir);
-	sb_reset(&outputBaseDir);
-	sb_reset(&includePrefix);
-
-	reset_preprocConfig(&config);
 }
 
-int CALLBACK WinMain(_In_ HINSTANCE /*Instance*/, _In_opt_ HINSTANCE /*PrevInstance*/, _In_ LPSTR CommandLine, _In_ int /*ShowCode*/)
+int CALLBACK main(int argc, const char **argv)
 {
 	crt_leak_check_init();
 
-	cmdline_init_composite(CommandLine);
-
-	const char *prefix = "";
-	sb_t srcDir = { BB_EMPTY_INITIALIZER };
-	sb_t includeDir = { BB_EMPTY_INITIALIZER };
-	sb_t configPath = { BB_EMPTY_INITIALIZER };
-	b32 checkFonts = false;
-
+	b32 bb = false;
+	std::string configPath;
 	std::vector< const char * > deferredArgs;
-	for(int i = 1; i < cmdline_argc(); ++i) {
-		const char *arg = cmdline_argv(i);
-		if(!bb_strnicmp(arg, "-prefix=", 8)) {
-			prefix = arg + 8;
-		} else if(!bb_strnicmp(arg, "-includePrefix=", 15)) {
-			g_includePrefix = arg + 15;
-		} else if(!bb_strnicmp(arg, "-src=", 5)) {
-			sb_append(&srcDir, arg + 5);
-		} else if(!bb_strnicmp(arg, "-include=", 9)) {
-			sb_append(&includeDir, arg + 9);
-		} else if(!bb_stricmp(arg, "-fonts")) {
-			checkFonts = true;
+	for(int i = 1; i < argc; ++i) {
+		const char *arg = argv[i];
+		if(!bb_stricmp(arg, "-bb")) {
+			bb = true;
 		} else if(!bb_strnicmp(arg, "-config=", 8)) {
-			sb_append(&configPath, arg + 8);
-		} else if(!bb_stricmp(arg, "-bb")) {
-			// already handled
-		} else {
-			// handle later
-			deferredArgs.push_back(arg);
+			configPath = arg + 8;
 		}
 	}
 
-	if(configPath.data) {
-		GenerateFromJson(sb_get(&configPath));
+	if(!configPath.empty()) {
+		GenerateFromJson(bb, configPath.c_str());
 	} else {
-		InitLogging(false);
+		InitLogging(bb, "(null)");
 	}
-
-	if(configPath.count == 0 && 0) {
-		if(sb_len(&srcDir) < 1) {
-			sb_append(&srcDir, ".");
-		}
-		if(sb_len(&includeDir) < 1) {
-			sb_append(&includeDir, sb_get(&srcDir));
-		}
-
-		path_resolve_inplace(&srcDir);
-		path_resolve_inplace(&includeDir);
-
-		bool bHeaderOnly = false;
-		bool bRecurse = true;
-		for(const char *arg : deferredArgs) {
-			if(!bb_stricmp(arg, "-headeronly")) {
-				bHeaderOnly = true;
-			} else if(!bb_stricmp(arg, "-noheaderonly")) {
-				bHeaderOnly = false;
-			} else if(!bb_stricmp(arg, "-recurse")) {
-				bRecurse = true;
-			} else if(!bb_stricmp(arg, "-norecurse")) {
-				bRecurse = false;
-			} else if(!bb_strnicmp(arg, "-ignore=", 8)) {
-				sb_t scanDir = {};
-				sb_append(&scanDir, arg + 8);
-				path_resolve_inplace(&scanDir);
-				g_ignorePaths.insert(sb_get(&scanDir));
-				sb_reset(&scanDir);
-			} else if(!bb_strnicmp(arg, "-header=", 8)) {
-				sb_t scanDir = {};
-				sb_append(&scanDir, arg + 8);
-				path_resolve_inplace(&scanDir);
-				g_bHeaderOnly = true;
-				scanHeaders(&scanDir, true, nullptr);
-				g_bHeaderOnly = false;
-				sb_reset(&scanDir);
-			} else if(!bb_strnicmp(arg, "-headernorecurse=", 17)) {
-				sb_t scanDir = {};
-				sb_append(&scanDir, arg + 17);
-				path_resolve_inplace(&scanDir);
-				g_bHeaderOnly = true;
-				scanHeaders(&scanDir, false, nullptr);
-				g_bHeaderOnly = false;
-				sb_reset(&scanDir);
-			} else {
-				sb_t scanDir = {};
-				sb_append(&scanDir, arg);
-				path_resolve_inplace(&scanDir);
-				g_bHeaderOnly = bHeaderOnly;
-				scanHeaders(&scanDir, bRecurse, nullptr);
-				g_bHeaderOnly = false;
-				sb_reset(&scanDir);
-			}
-		}
-
-		GenerateJson(prefix, g_includePrefix, &srcDir, &includeDir);
-		GenerateStructs(prefix, g_includePrefix, &srcDir, &includeDir);
-		if(checkFonts) {
-			CheckFreeType(&includeDir);
-		}
-	}
-	sb_reset(&srcDir);
-	sb_reset(&includeDir);
-	sb_reset(&configPath);
 
 	BB_SHUTDOWN();
-
-	cmdline_shutdown();
 
 	return 0;
 }

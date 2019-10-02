@@ -6,15 +6,12 @@
 
 #pragma once
 
-#include "file_utils.h"
-#include "path_utils.h"
-#include "sdict.h"
-
 #define LEXER_STATIC
 #define wby_size lexer_size
-#include "mmx/lexer.h"
+#include "../../submodules/mmx/lexer.h"
 
 #include <set>
+#include <stdarg.h>
 #include <string>
 #include <vector>
 
@@ -52,7 +49,20 @@ extern std::vector< struct_s > g_structs;
 
 extern std::set< std::string > g_paths;
 
-void GenerateJson(const char *prefix, const char *includePrefix, sb_t *srcDir, sb_t *includeDir);
-void GenerateStructs(const char *prefix, const char *includePrefix, sb_t *srcDir, sb_t *includeDir);
+void GenerateJson(const char *prefix, const char *includePrefix, const char *srcDir, const char *includeDir);
+void GenerateStructs(const char *prefix, const char *includePrefix, const char *srcDir, const char *includeDir);
 
-void WriteAndReportFileData(sb_t *data, sb_t *srcDir, const char *prefix, const char *suffix);
+std::string &va(std::string &dst, const char *fmt, ...);
+const char *va(const char *fmt, ...);
+
+std::string ReplaceChar(const std::string &src, char test, const char *replacement);
+
+const char *GetPathFilename(const std::string &src);
+const char *GetPathFilename(const char *src);
+std::vector< std::string > TokenizePath(const std::string &src);
+void AddPathComponent(std::string &path, const std::string &component, char separator = 0);
+std::string ResolvePath(const std::string &src, char separator = 0);
+void TestResolvePath();
+
+std::string ReadFileContents(const std::string &path);
+void WriteAndReportFileData(const std::string &data, const char *srcDir, const char *prefix, const char *suffix);

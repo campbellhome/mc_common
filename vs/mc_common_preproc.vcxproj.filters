@@ -20,7 +20,10 @@
     <ClCompile Include="..\src\mc_preproc\mc_preproc_structs.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\mc_preproc\mc_preproc_config.c">
+    <ClCompile Include="..\src\mc_preproc\mc_preproc_config.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\mc_preproc\mc_preproc_utils.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

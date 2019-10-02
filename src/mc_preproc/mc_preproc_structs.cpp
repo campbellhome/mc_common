@@ -2,7 +2,8 @@
 #define _ITERATOR_DEBUG_LEVEL 0
 
 #include "mc_preproc.h"
-#include "va.h"
+
+#include "bb_common.h"
 
 static bool EndsWith(const std::string &str, const char *substr)
 {
@@ -131,7 +132,7 @@ const struct_s *GetHashEntryStruct(const struct_s &o)
 	return entryStruct;
 }
 
-void GenerateStringHashHeader(sb_t *s)
+void GenerateStringHashHeader(std::string &s)
 {
 	for(const struct_s &o : g_structs) {
 		if(!o.bStringHash)
@@ -143,26 +144,26 @@ void GenerateStringHashHeader(sb_t *s)
 			continue;
 
 		if(o.fromLoc) {
-			sb_append(s, "\n");
+			va(s, "\n");
 			const char *entryShortName = GetMemberType(entry->name);
 			const char *entryFullName = entry->name.c_str();
 			const char *tableShortName = GetMemberType(o.name);
 			const char *tableFullName = o.name.c_str();
-			sb_va(s, "u64 %s_hash(const %s *entry);\n", entryShortName, entryFullName);
-			sb_va(s, "int %s_compare(const %s *a, const %s *b);\n", entryShortName, entryFullName, entryFullName);
-			sb_va(s, "%s *%s_find(%s *table, const char *name);\n", entryFullName, tableShortName, tableFullName);
-			sb_va(s, "%s *%s_insert(%s *table, const %s *entry);\n", entryFullName, tableShortName, tableFullName, entryFullName);
-			sb_va(s, "%s *%s_insertmulti(%s *table, const %s *entry);\n", entryFullName, tableShortName, tableFullName, entryFullName);
-			sb_va(s, "%s *%s_find_internal(%s *table, const %s *entry, u64 hashValue);\n", entryFullName, tableShortName, tableFullName, entryFullName);
-			sb_va(s, "%s *%s_insert_internal(%s *table, const %s *entry, u64 hashValue);\n", entryFullName, tableShortName, tableFullName, entryFullName);
-			sb_va(s, "%s *%s_insertmulti_internal(%s *table, const %s *entry, u64 hashValue);\n", entryFullName, tableShortName, tableFullName, entryFullName);
-			sb_va(s, "void %s_remove(%s *table, const char *name);\n", tableShortName, tableFullName);
-			sb_va(s, "void %s_removemulti(%s *table, const char *name);\n", tableShortName, tableFullName);
+			va(s, "u64 %s_hash(const %s *entry);\n", entryShortName, entryFullName);
+			va(s, "int %s_compare(const %s *a, const %s *b);\n", entryShortName, entryFullName, entryFullName);
+			va(s, "%s *%s_find(%s *table, const char *name);\n", entryFullName, tableShortName, tableFullName);
+			va(s, "%s *%s_insert(%s *table, const %s *entry);\n", entryFullName, tableShortName, tableFullName, entryFullName);
+			va(s, "%s *%s_insertmulti(%s *table, const %s *entry);\n", entryFullName, tableShortName, tableFullName, entryFullName);
+			va(s, "%s *%s_find_internal(%s *table, const %s *entry, u64 hashValue);\n", entryFullName, tableShortName, tableFullName, entryFullName);
+			va(s, "%s *%s_insert_internal(%s *table, const %s *entry, u64 hashValue);\n", entryFullName, tableShortName, tableFullName, entryFullName);
+			va(s, "%s *%s_insertmulti_internal(%s *table, const %s *entry, u64 hashValue);\n", entryFullName, tableShortName, tableFullName, entryFullName);
+			va(s, "void %s_remove(%s *table, const char *name);\n", tableShortName, tableFullName);
+			va(s, "void %s_removemulti(%s *table, const char *name);\n", tableShortName, tableFullName);
 		}
 	}
 }
 
-void GenerateStringHashSource(sb_t *s)
+void GenerateStringHashSource(std::string &s)
 {
 	for(const struct_s &o : g_structs) {
 		if(!o.bStringHash)
@@ -180,202 +181,198 @@ void GenerateStringHashSource(sb_t *s)
 			const char *entryShortName = GetMemberType(ht.entryStruct->name);
 			const char *entryFullName = ht.entryStruct->name.c_str();
 
-			sb_va(s, "\n");
-			sb_va(s, "u64 %s_hash(const %s *entry)\n", entryShortName, entryFullName);
-			sb_va(s, "{\n");
-			sb_va(s, "	return strsimplehash(sb_get(&entry->key));\n");
-			sb_va(s, "}\n");
+			va(s, "\n");
+			va(s, "u64 %s_hash(const %s *entry)\n", entryShortName, entryFullName);
+			va(s, "{\n");
+			va(s, "	return strsimplehash(sb_get(&entry->key));\n");
+			va(s, "}\n");
 
-			sb_va(s, "\n");
-			sb_va(s, "int %s_compare(const %s *a, const %s *b)\n", entryShortName, entryFullName, entryFullName);
-			sb_va(s, "{\n");
-			sb_va(s, "	return strcmp(sb_get(&a->key), sb_get(&b->key));\n");
-			sb_va(s, "}\n");
+			va(s, "\n");
+			va(s, "int %s_compare(const %s *a, const %s *b)\n", entryShortName, entryFullName, entryFullName);
+			va(s, "{\n");
+			va(s, "	return strcmp(sb_get(&a->key), sb_get(&b->key));\n");
+			va(s, "}\n");
 
-			sb_va(s, "\n");
-			sb_va(s, "%s *%s_find_internal(%s *table, const %s *entry, u64 hashValue)\n", entryFullName, tableShortName, tableFullName, entryFullName);
-			sb_va(s, "{\n");
-			sb_va(s, "	u32 chainIndex = hashValue %% table->count;\n");
-			sb_va(s, "	%s *chain = table->data + chainIndex;\n", chainFullName);
-			sb_va(s, "	for(u32 i = 0; i < chain->count; ++i) {\n");
-			sb_va(s, "		%s *existing = chain->data + i;\n", entryFullName);
-			sb_va(s, "		if(!%s_compare(existing, entry)) {\n", entryShortName);
-			sb_va(s, "			return existing;\n");
-			sb_va(s, "		}\n");
-			sb_va(s, "	}\n");
-			sb_va(s, "	return NULL;\n");
-			sb_va(s, "}\n");
+			va(s, "\n");
+			va(s, "%s *%s_find_internal(%s *table, const %s *entry, u64 hashValue)\n", entryFullName, tableShortName, tableFullName, entryFullName);
+			va(s, "{\n");
+			va(s, "	u32 chainIndex = hashValue %% table->count;\n");
+			va(s, "	%s *chain = table->data + chainIndex;\n", chainFullName);
+			va(s, "	for(u32 i = 0; i < chain->count; ++i) {\n");
+			va(s, "		%s *existing = chain->data + i;\n", entryFullName);
+			va(s, "		if(!%s_compare(existing, entry)) {\n", entryShortName);
+			va(s, "			return existing;\n");
+			va(s, "		}\n");
+			va(s, "	}\n");
+			va(s, "	return NULL;\n");
+			va(s, "}\n");
 
-			sb_va(s, "\n");
-			sb_va(s, "%s *%s_insert_internal(%s *table, const %s *entry, u64 hashValue)\n", entryFullName, tableShortName, tableFullName, entryFullName);
-			sb_va(s, "{\n");
-			sb_va(s, "	%s *result = %s_find_internal(table, entry, hashValue);\n", entryFullName, tableFullName);
-			sb_va(s, "	if(!result) {\n");
-			sb_va(s, "		u32 chainIndex = hashValue %% table->count;\n");
-			sb_va(s, "		%s *chain = table->data + chainIndex;\n", chainFullName);
-			sb_va(s, "		result = bba_add_noclear(*chain, 1);\n");
-			sb_va(s, "		if(result != NULL) {\n");
-			sb_va(s, "			*result = %s_clone(entry);\n", entryShortName);
-			sb_va(s, "		}\n");
-			sb_va(s, "	}\n");
-			sb_va(s, "	\n");
-			sb_va(s, "	return result;\n");
-			sb_va(s, "}\n");
+			va(s, "\n");
+			va(s, "%s *%s_insert_internal(%s *table, const %s *entry, u64 hashValue)\n", entryFullName, tableShortName, tableFullName, entryFullName);
+			va(s, "{\n");
+			va(s, "	%s *result = %s_find_internal(table, entry, hashValue);\n", entryFullName, tableFullName);
+			va(s, "	if(!result) {\n");
+			va(s, "		u32 chainIndex = hashValue %% table->count;\n");
+			va(s, "		%s *chain = table->data + chainIndex;\n", chainFullName);
+			va(s, "		result = bba_add_noclear(*chain, 1);\n");
+			va(s, "		if(result != NULL) {\n");
+			va(s, "			*result = %s_clone(entry);\n", entryShortName);
+			va(s, "		}\n");
+			va(s, "	}\n");
+			va(s, "	\n");
+			va(s, "	return result;\n");
+			va(s, "}\n");
 
-			sb_va(s, "\n");
-			sb_va(s, "%s *%s_insertmulti_internal(%s *table, const %s *entry, u64 hashValue)\n", entryFullName, tableShortName, tableFullName, entryFullName);
-			sb_va(s, "{\n");
-			sb_va(s, "	u32 chainIndex = hashValue %% table->count;\n");
-			sb_va(s, "	%s *chain = table->data + chainIndex;\n", chainFullName);
-			sb_va(s, "	%s *result = bba_add_noclear(*chain, 1);\n", entryFullName);
-			sb_va(s, "	if(result != NULL) {\n");
-			sb_va(s, "		*result = %s_clone(entry);\n", entryShortName);
-			sb_va(s, "	}\n");
-			sb_va(s, "	\n");
-			sb_va(s, "	return result;\n");
-			sb_va(s, "}\n");
+			va(s, "\n");
+			va(s, "%s *%s_insertmulti_internal(%s *table, const %s *entry, u64 hashValue)\n", entryFullName, tableShortName, tableFullName, entryFullName);
+			va(s, "{\n");
+			va(s, "	u32 chainIndex = hashValue %% table->count;\n");
+			va(s, "	%s *chain = table->data + chainIndex;\n", chainFullName);
+			va(s, "	%s *result = bba_add_noclear(*chain, 1);\n", entryFullName);
+			va(s, "	if(result != NULL) {\n");
+			va(s, "		*result = %s_clone(entry);\n", entryShortName);
+			va(s, "	}\n");
+			va(s, "	\n");
+			va(s, "	return result;\n");
+			va(s, "}\n");
 
-			sb_va(s, "\n");
-			sb_va(s, "%s *%s_find(%s *table, const char *name)\n", entryFullName, tableShortName, tableFullName);
-			sb_va(s, "{\n");
-			sb_va(s, "	if(!name) {\n");
-			sb_va(s, "		name = \"\";\n");
-			sb_va(s, "	}\n");
-			sb_va(s, "	%s entry = { BB_EMPTY_INITIALIZER };\n", entryFullName);
-			sb_va(s, "	entry.key = sb_from_c_string_no_alloc(name);\n");
-			sb_va(s, "	u64 hashValue = %s_hash(&entry);\n", entryShortName);
-			sb_va(s, "	return %s_find_internal(table, &entry, hashValue);\n", tableShortName);
-			sb_va(s, "}\n");
+			va(s, "\n");
+			va(s, "%s *%s_find(%s *table, const char *name)\n", entryFullName, tableShortName, tableFullName);
+			va(s, "{\n");
+			va(s, "	if(!name) {\n");
+			va(s, "		name = \"\";\n");
+			va(s, "	}\n");
+			va(s, "	%s entry = { BB_EMPTY_INITIALIZER };\n", entryFullName);
+			va(s, "	entry.key = sb_from_c_string_no_alloc(name);\n");
+			va(s, "	u64 hashValue = %s_hash(&entry);\n", entryShortName);
+			va(s, "	return %s_find_internal(table, &entry, hashValue);\n", tableShortName);
+			va(s, "}\n");
 
-			sb_va(s, "\n");
-			sb_va(s, "%s *%s_insert(%s *table, const %s *entry)\n", entryFullName, tableShortName, tableFullName, entryFullName);
-			sb_va(s, "{\n");
-			sb_va(s, "	u64 hashValue = %s_hash(entry);\n", entryShortName);
-			sb_va(s, "	return %s_insert_internal(table, entry, hashValue);\n", tableShortName);
-			sb_va(s, "}\n");
+			va(s, "\n");
+			va(s, "%s *%s_insert(%s *table, const %s *entry)\n", entryFullName, tableShortName, tableFullName, entryFullName);
+			va(s, "{\n");
+			va(s, "	u64 hashValue = %s_hash(entry);\n", entryShortName);
+			va(s, "	return %s_insert_internal(table, entry, hashValue);\n", tableShortName);
+			va(s, "}\n");
 
-			sb_va(s, "\n");
-			sb_va(s, "%s *%s_insertmulti(%s *table, const %s *entry)\n", entryFullName, tableShortName, tableFullName, entryFullName);
-			sb_va(s, "{\n");
-			sb_va(s, "	u64 hashValue = %s_hash(entry);\n", entryShortName);
-			sb_va(s, "	return %s_insertmulti_internal(table, entry, hashValue);\n", tableShortName);
-			sb_va(s, "}\n");
+			va(s, "\n");
+			va(s, "%s *%s_insertmulti(%s *table, const %s *entry)\n", entryFullName, tableShortName, tableFullName, entryFullName);
+			va(s, "{\n");
+			va(s, "	u64 hashValue = %s_hash(entry);\n", entryShortName);
+			va(s, "	return %s_insertmulti_internal(table, entry, hashValue);\n", tableShortName);
+			va(s, "}\n");
 
-			sb_va(s, "\n");
-			sb_va(s, "void %s_remove(%s *table, const char *name)\n", tableShortName, tableFullName);
-			sb_va(s, "{\n");
-			sb_va(s, "	%s entry = { BB_EMPTY_INITIALIZER };\n", entryFullName);
-			sb_va(s, "	entry.key = sb_from_c_string_no_alloc(name);\n");
-			sb_va(s, "	u64 hashValue = %s_hash(&entry);\n", entryShortName);
-			sb_va(s, "\n");
-			sb_va(s, "	u32 chainIndex = hashValue %% table->count;\n");
-			sb_va(s, "	%s *chain = table->data + chainIndex;\n", chainFullName);
-			sb_va(s, "	for(u32 i = 0; i < chain->count; ++i) {\n");
-			sb_va(s, "		%s *existing = chain->data + i;\n", entryFullName);
-			sb_va(s, "		if(!%s_compare(existing, &entry)) {\n", entryShortName);
-			sb_va(s, "			%s_reset(existing);\n", entryShortName);
-			sb_va(s, "			bba_erase(*chain, i);\n");
-			sb_va(s, "			return;\n");
-			sb_va(s, "		}\n");
-			sb_va(s, "	}\n");
-			sb_va(s, "}\n");
+			va(s, "\n");
+			va(s, "void %s_remove(%s *table, const char *name)\n", tableShortName, tableFullName);
+			va(s, "{\n");
+			va(s, "	%s entry = { BB_EMPTY_INITIALIZER };\n", entryFullName);
+			va(s, "	entry.key = sb_from_c_string_no_alloc(name);\n");
+			va(s, "	u64 hashValue = %s_hash(&entry);\n", entryShortName);
+			va(s, "\n");
+			va(s, "	u32 chainIndex = hashValue %% table->count;\n");
+			va(s, "	%s *chain = table->data + chainIndex;\n", chainFullName);
+			va(s, "	for(u32 i = 0; i < chain->count; ++i) {\n");
+			va(s, "		%s *existing = chain->data + i;\n", entryFullName);
+			va(s, "		if(!%s_compare(existing, &entry)) {\n", entryShortName);
+			va(s, "			%s_reset(existing);\n", entryShortName);
+			va(s, "			bba_erase(*chain, i);\n");
+			va(s, "			return;\n");
+			va(s, "		}\n");
+			va(s, "	}\n");
+			va(s, "}\n");
 
-			sb_va(s, "\n");
-			sb_va(s, "void %s_removemulti(%s *table, const char *name)\n", tableShortName, tableFullName);
-			sb_va(s, "{\n");
-			sb_va(s, "	%s entry = { BB_EMPTY_INITIALIZER };\n", entryFullName);
-			sb_va(s, "	entry.key = sb_from_c_string_no_alloc(name);\n");
-			sb_va(s, "	u64 hashValue = %s_hash(&entry);\n", entryShortName);
-			sb_va(s, "\n");
-			sb_va(s, "	u32 chainIndex = hashValue %% table->count;\n");
-			sb_va(s, "	%s *chain = table->data + chainIndex;\n", chainFullName);
-			sb_va(s, "	for(u32 i = 0; i < chain->count;) {\n");
-			sb_va(s, "		%s *existing = chain->data + i;\n", entryFullName);
-			sb_va(s, "		if(%s_compare(existing, &entry)) {\n", entryShortName);
-			sb_va(s, "			++i;\n");
-			sb_va(s, "		} else {\n");
-			sb_va(s, "			%s_reset(existing);\n", entryShortName);
-			sb_va(s, "			bba_erase(*chain, i);\n");
-			sb_va(s, "		}\n");
-			sb_va(s, "	}\n");
-			sb_va(s, "}\n");
+			va(s, "\n");
+			va(s, "void %s_removemulti(%s *table, const char *name)\n", tableShortName, tableFullName);
+			va(s, "{\n");
+			va(s, "	%s entry = { BB_EMPTY_INITIALIZER };\n", entryFullName);
+			va(s, "	entry.key = sb_from_c_string_no_alloc(name);\n");
+			va(s, "	u64 hashValue = %s_hash(&entry);\n", entryShortName);
+			va(s, "\n");
+			va(s, "	u32 chainIndex = hashValue %% table->count;\n");
+			va(s, "	%s *chain = table->data + chainIndex;\n", chainFullName);
+			va(s, "	for(u32 i = 0; i < chain->count;) {\n");
+			va(s, "		%s *existing = chain->data + i;\n", entryFullName);
+			va(s, "		if(%s_compare(existing, &entry)) {\n", entryShortName);
+			va(s, "			++i;\n");
+			va(s, "		} else {\n");
+			va(s, "			%s_reset(existing);\n", entryShortName);
+			va(s, "			bba_erase(*chain, i);\n");
+			va(s, "		}\n");
+			va(s, "	}\n");
+			va(s, "}\n");
 		}
 	}
 }
 
-static void GenerateStructsHeader(const char *prefix, sb_t *srcDir)
+static void GenerateStructsHeader(const char *prefix, const char *srcDir)
 {
-	sb_t data;
-	sb_init(&data);
-	sb_t *s = &data;
+	std::string s;
 
-	sb_append(s, "// Copyright (c) 2012-2019 Matt Campbell\n");
-	sb_append(s, "// MIT license (see License.txt)\n");
-	sb_append(s, "\n");
-	sb_append(s, "// AUTOGENERATED FILE - DO NOT EDIT\n");
-	sb_append(s, "\n");
-	sb_append(s, "// clang-format off\n");
-	sb_append(s, "\n");
-	sb_append(s, "#pragma once\n");
-	sb_append(s, "\n");
-	sb_append(s, "#include \"bb_types.h\"\n");
-	sb_append(s, "\n");
-	sb_append(s, "#if defined(__cplusplus)\n");
-	sb_append(s, "extern \"C\" {\n");
-	sb_append(s, "#endif\n");
-	sb_append(s, "\n");
+	va(s, "// Copyright (c) 2012-2019 Matt Campbell\n");
+	va(s, "// MIT license (see License.txt)\n");
+	va(s, "\n");
+	va(s, "// AUTOGENERATED FILE - DO NOT EDIT\n");
+	va(s, "\n");
+	va(s, "// clang-format off\n");
+	va(s, "\n");
+	va(s, "#pragma once\n");
+	va(s, "\n");
+	va(s, "#include \"bb_types.h\"\n");
+	va(s, "\n");
+	va(s, "#if defined(__cplusplus)\n");
+	va(s, "extern \"C\" {\n");
+	va(s, "#endif\n");
+	va(s, "\n");
 	for(const struct_s &o : g_structs) {
 		if(o.typedefBaseName.empty()) {
-			sb_va(s, "struct %s;\n", o.name.c_str());
+			va(s, "struct %s;\n", o.name.c_str());
 		} else {
-			sb_va(s, "typedef struct %s %s;\n", o.typedefBaseName.c_str(), o.name.c_str());
+			va(s, "typedef struct %s %s;\n", o.typedefBaseName.c_str(), o.name.c_str());
 		}
 	}
-	sb_append(s, "\n");
+	va(s, "\n");
 	for(const struct_s &o : g_structs) {
 		if(o.fromLoc) {
-			sb_va(s, "void %s_reset_from_loc(const char *file, int line, %s *val);\n", GetMemberType(o.name), o.name.c_str());
+			va(s, "void %s_reset_from_loc(const char *file, int line, %s *val);\n", GetMemberType(o.name), o.name.c_str());
 		} else {
-			sb_va(s, "void %s_reset(%s *val);\n", GetMemberType(o.name), o.name.c_str());
+			va(s, "void %s_reset(%s *val);\n", GetMemberType(o.name), o.name.c_str());
 		}
 	}
-	sb_append(s, "\n");
+	va(s, "\n");
 	for(const struct_s &o : g_structs) {
 		if(o.fromLoc) {
-			sb_va(s, "%s %s_clone_from_loc(const char *file, int line, const %s *src);\n", o.name.c_str(), GetMemberType(o.name), o.name.c_str());
+			va(s, "%s %s_clone_from_loc(const char *file, int line, const %s *src);\n", o.name.c_str(), GetMemberType(o.name), o.name.c_str());
 		} else {
-			sb_va(s, "%s %s_clone(const %s *src);\n", o.name.c_str(), GetMemberType(o.name), o.name.c_str());
+			va(s, "%s %s_clone(const %s *src);\n", o.name.c_str(), GetMemberType(o.name), o.name.c_str());
 		}
 	}
-	sb_append(s, "\n");
-	sb_append(s, "#if defined(__cplusplus)\n");
-	sb_append(s, "} // extern \"C\"\n");
-	sb_append(s, "#endif\n");
+	va(s, "\n");
+	va(s, "#if defined(__cplusplus)\n");
+	va(s, "} // extern \"C\"\n");
+	va(s, "#endif\n");
 
-	sb_append(s, "\n");
+	va(s, "\n");
 	for(const struct_s &o : g_structs) {
 		if(o.fromLoc) {
-			sb_va(s, "#if !defined(%s_reset)\n", GetMemberType(o.name));
-			sb_va(s, "#define %s_reset(var) %s_reset_from_loc(__FILE__, __LINE__, var);\n", GetMemberType(o.name), GetMemberType(o.name));
-			sb_append(s, "#endif\n");
+			va(s, "#if !defined(%s_reset)\n", GetMemberType(o.name));
+			va(s, "#define %s_reset(var) %s_reset_from_loc(__FILE__, __LINE__, var);\n", GetMemberType(o.name), GetMemberType(o.name));
+			va(s, "#endif\n");
 		}
 	}
 
-	sb_append(s, "\n");
+	va(s, "\n");
 	for(const struct_s &o : g_structs) {
 		if(o.fromLoc) {
-			sb_va(s, "#if !defined(%s_clone)\n", GetMemberType(o.name));
-			sb_va(s, "#define %s_clone(var) %s_clone_from_loc(__FILE__, __LINE__, var);\n", GetMemberType(o.name), GetMemberType(o.name));
-			sb_append(s, "#endif\n");
+			va(s, "#if !defined(%s_clone)\n", GetMemberType(o.name));
+			va(s, "#define %s_clone(var) %s_clone_from_loc(__FILE__, __LINE__, var);\n", GetMemberType(o.name), GetMemberType(o.name));
+			va(s, "#endif\n");
 		}
 	}
 
 	GenerateStringHashHeader(s);
 
-	sb_replace_all_inplace(s, "\n", "\r\n");
-
+	s = ReplaceChar(s, '\n', "\r\n");
 	WriteAndReportFileData(s, srcDir, prefix, "structs_generated.h");
-	sb_reset(&data);
 }
 
 enum memberJsonType_e {
@@ -403,54 +400,50 @@ static memberJsonType_e ClassifyMemberJson(const struct_member_s &m)
 	return kMemberJsonNumber;
 }
 
-static void GenerateStructsSource(const char *prefix, const char *includePrefix, sb_t *srcDir)
+static void GenerateStructsSource(const char *prefix, const char *includePrefix, const char *srcDir)
 {
-	sb_t data;
-	sb_init(&data);
-	sb_t *s = &data;
+	std::string s;
 
-	sb_append(s, "// Copyright (c) 2012-2019 Matt Campbell\n");
-	sb_append(s, "// MIT license (see License.txt)\n");
-	sb_append(s, "\n");
-	sb_append(s, "// AUTOGENERATED FILE - DO NOT EDIT\n");
-	sb_append(s, "\n");
-	sb_append(s, "// clang-format off\n");
-	sb_append(s, "\n");
-	sb_va(s, "#include \"%s%sstructs_generated.h\"\n", includePrefix, prefix);
-	sb_append(s, "#include \"bb_array.h\"\n");
-	sb_append(s, "#include \"str.h\"\n");
-	sb_append(s, "#include \"va.h\"\n");
-	sb_append(s, "\n");
+	va(s, "// Copyright (c) 2012-2019 Matt Campbell\n");
+	va(s, "// MIT license (see License.txt)\n");
+	va(s, "\n");
+	va(s, "// AUTOGENERATED FILE - DO NOT EDIT\n");
+	va(s, "\n");
+	va(s, "// clang-format off\n");
+	va(s, "\n");
+	va(s, "#include \"%s%sstructs_generated.h\"\n", includePrefix, prefix);
+	va(s, "#include \"bb_array.h\"\n");
+	va(s, "#include \"str.h\"\n");
+	va(s, "#include \"va.h\"\n");
+	va(s, "\n");
 	for(const std::string &str : g_paths) {
-		sb_t path = sb_from_c_string(str.c_str());
-		sb_replace_all_inplace(&path, "\\", "/");
-		sb_va(s, "#include \"%s\"\n", sb_get(&path));
-		sb_reset(&path);
+		std::string path = ReplaceChar(str, '\\', "/");
+		va(s, "#include \"%s\"\n", path.c_str());
 	}
-	sb_append(s, "\n");
-	sb_append(s, "#include <string.h>\n");
-	sb_append(s, "\n");
+	va(s, "\n");
+	va(s, "#include <string.h>\n");
+	va(s, "\n");
 	for(const struct_s &o : g_structs) {
 		if(o.headerOnly)
 			continue;
 		BBArrayData bbArrayData = ParseBBArray(o);
-		sb_append(s, "\n");
+		va(s, "\n");
 		if(o.fromLoc) {
-			sb_va(s, "void %s_reset_from_loc(const char *file, int line, %s *val)\n", GetMemberType(o.name), o.name.c_str());
+			va(s, "void %s_reset_from_loc(const char *file, int line, %s *val)\n", GetMemberType(o.name), o.name.c_str());
 		} else {
-			sb_va(s, "void %s_reset(%s *val)\n", GetMemberType(o.name), o.name.c_str());
+			va(s, "void %s_reset(%s *val)\n", GetMemberType(o.name), o.name.c_str());
 		}
-		sb_append(s, "{\n");
-		sb_append(s, "\tif(val) {\n");
+		va(s, "{\n");
+		va(s, "\tif(val) {\n");
 		if(bbArrayData.bExact) {
-			sb_va(s, "\t\tfor(u32 i = 0; i < val->count; ++i) {\n");
+			va(s, "\t\tfor(u32 i = 0; i < val->count; ++i) {\n");
 			if(o.fromLoc && IsFromLoc(bbArrayData.data->typeStr)) {
-				sb_va(s, "\t\t\t%s_reset_from_loc(file, line, val->data + i);\n", GetMemberType(bbArrayData.data->typeStr));
+				va(s, "\t\t\t%s_reset_from_loc(file, line, val->data + i);\n", GetMemberType(bbArrayData.data->typeStr));
 			} else {
-				sb_va(s, "\t\t\t%s_reset(val->data + i);\n", GetMemberType(bbArrayData.data->typeStr));
+				va(s, "\t\t\t%s_reset(val->data + i);\n", GetMemberType(bbArrayData.data->typeStr));
 			}
-			sb_append(s, "\t\t}\n");
-			sb_va(s, "\t\tbba_free(*val);\n", bbArrayData.data->name.c_str());
+			va(s, "\t\t}\n");
+			va(s, "\t\tbba_free(*val);\n", bbArrayData.data->name.c_str());
 		} else {
 			for(const struct_member_s &m : o.members) {
 				if(ClassifyMemberJson(m) != kMemberJsonObject) {
@@ -458,82 +451,80 @@ static void GenerateStructsSource(const char *prefix, const char *includePrefix,
 				}
 				if(m.arr.empty()) {
 					if(o.fromLoc && IsFromLoc(m.typeStr)) {
-						sb_va(s, "\t\t%s_reset_from_loc(file, line, &val->%s);\n", GetMemberType(m.typeStr), m.name.c_str());
+						va(s, "\t\t%s_reset_from_loc(file, line, &val->%s);\n", GetMemberType(m.typeStr), m.name.c_str());
 					} else {
-						sb_va(s, "\t\t%s_reset(&val->%s);\n", GetMemberType(m.typeStr), m.name.c_str());
+						va(s, "\t\t%s_reset(&val->%s);\n", GetMemberType(m.typeStr), m.name.c_str());
 					}
 				} else {
-					sb_va(s, "\t\tfor(u32 i = 0; i < BB_ARRAYSIZE(val->%s); ++i) {\n", m.name.c_str());
+					va(s, "\t\tfor(u32 i = 0; i < BB_ARRAYSIZE(val->%s); ++i) {\n", m.name.c_str());
 					if(o.fromLoc && IsFromLoc(m.typeStr)) {
-						sb_va(s, "\t\t\t%s_reset_from_loc(file, line, val->%s + i);\n", GetMemberType(m.typeStr), m.name.c_str());
+						va(s, "\t\t\t%s_reset_from_loc(file, line, val->%s + i);\n", GetMemberType(m.typeStr), m.name.c_str());
 					} else {
-						sb_va(s, "\t\t\t%s_reset(val->%s + i);\n", GetMemberType(m.typeStr), m.name.c_str());
+						va(s, "\t\t\t%s_reset(val->%s + i);\n", GetMemberType(m.typeStr), m.name.c_str());
 					}
-					sb_append(s, "\t\t}\n");
+					va(s, "\t\t}\n");
 				}
 			}
 		}
-		sb_append(s, "\t}\n");
-		sb_append(s, "}\n");
+		va(s, "\t}\n");
+		va(s, "}\n");
 		if(o.fromLoc) {
-			sb_va(s, "%s %s_clone_from_loc(const char *file, int line, const %s *src)\n", o.name.c_str(), GetMemberType(o.name), o.name.c_str());
+			va(s, "%s %s_clone_from_loc(const char *file, int line, const %s *src)\n", o.name.c_str(), GetMemberType(o.name), o.name.c_str());
 		} else {
-			sb_va(s, "%s %s_clone(const %s *src)\n", o.name.c_str(), GetMemberType(o.name), o.name.c_str());
+			va(s, "%s %s_clone(const %s *src)\n", o.name.c_str(), GetMemberType(o.name), o.name.c_str());
 		}
-		sb_append(s, "{\n");
-		sb_va(s, "\t%s dst = { BB_EMPTY_INITIALIZER };\n", o.name.c_str());
-		sb_append(s, "\tif(src) {\n");
+		va(s, "{\n");
+		va(s, "\t%s dst = { BB_EMPTY_INITIALIZER };\n", o.name.c_str());
+		va(s, "\tif(src) {\n");
 		if(bbArrayData.bExact) {
-			sb_va(s, "\t\tfor(u32 i = 0; i < src->count; ++i) {\n");
-			sb_va(s, "\t\t\tif(bba_add_noclear(dst, 1)) {\n");
+			va(s, "\t\tfor(u32 i = 0; i < src->count; ++i) {\n");
+			va(s, "\t\t\tif(bba_add_noclear(dst, 1)) {\n");
 			if(o.fromLoc && IsFromLoc(bbArrayData.data->typeStr)) {
-				sb_va(s, "\t\t\t\tbba_last(dst) = %s_clone_from_loc(file, line, src->data + i);\n", GetMemberType(bbArrayData.data->typeStr));
+				va(s, "\t\t\t\tbba_last(dst) = %s_clone_from_loc(file, line, src->data + i);\n", GetMemberType(bbArrayData.data->typeStr));
 			} else {
-				sb_va(s, "\t\t\t\tbba_last(dst) = %s_clone(src->data + i);\n", GetMemberType(bbArrayData.data->typeStr));
+				va(s, "\t\t\t\tbba_last(dst) = %s_clone(src->data + i);\n", GetMemberType(bbArrayData.data->typeStr));
 			}
-			sb_va(s, "\t\t\t}\n");
-			sb_va(s, "\t\t}\n");
+			va(s, "\t\t\t}\n");
+			va(s, "\t\t}\n");
 		} else {
 			for(const struct_member_s &m : o.members) {
 				if(m.arr.empty()) {
 					if(ClassifyMemberJson(m) == kMemberJsonObject) {
 						if(o.fromLoc && IsFromLoc(m.typeStr)) {
-							sb_va(s, "\t\tdst.%s = %s_clone_from_loc(file, line, &src->%s);\n", m.name.c_str(), GetMemberType(m.typeStr), m.name.c_str());
+							va(s, "\t\tdst.%s = %s_clone_from_loc(file, line, &src->%s);\n", m.name.c_str(), GetMemberType(m.typeStr), m.name.c_str());
 						} else {
-							sb_va(s, "\t\tdst.%s = %s_clone(&src->%s);\n", m.name.c_str(), GetMemberType(m.typeStr), m.name.c_str());
+							va(s, "\t\tdst.%s = %s_clone(&src->%s);\n", m.name.c_str(), GetMemberType(m.typeStr), m.name.c_str());
 						}
 					} else {
-						sb_va(s, "\t\tdst.%s = src->%s;\n", m.name.c_str(), m.name.c_str());
+						va(s, "\t\tdst.%s = src->%s;\n", m.name.c_str(), m.name.c_str());
 					}
 				} else {
-					sb_va(s, "\t\tfor(u32 i = 0; i < BB_ARRAYSIZE(src->%s); ++i) {\n", m.name.c_str());
+					va(s, "\t\tfor(u32 i = 0; i < BB_ARRAYSIZE(src->%s); ++i) {\n", m.name.c_str());
 					if(ClassifyMemberJson(m) == kMemberJsonObject) {
 						if(o.fromLoc && IsFromLoc(m.typeStr)) {
-							sb_va(s, "\t\t\tdst.%s[i] = %s_clone_from_loc(file, line, &src->%s[i]);\n", m.name.c_str(), GetMemberType(m.typeStr), m.name.c_str());
+							va(s, "\t\t\tdst.%s[i] = %s_clone_from_loc(file, line, &src->%s[i]);\n", m.name.c_str(), GetMemberType(m.typeStr), m.name.c_str());
 						} else {
-							sb_va(s, "\t\t\tdst.%s[i] = %s_clone(&src->%s[i]);\n", m.name.c_str(), GetMemberType(m.typeStr), m.name.c_str());
+							va(s, "\t\t\tdst.%s[i] = %s_clone(&src->%s[i]);\n", m.name.c_str(), GetMemberType(m.typeStr), m.name.c_str());
 						}
 					} else {
-						sb_va(s, "\t\t\tdst.%s[i] = src->%s[i];\n", m.name.c_str(), m.name.c_str());
+						va(s, "\t\t\tdst.%s[i] = src->%s[i];\n", m.name.c_str(), m.name.c_str());
 					}
-					sb_append(s, "\t\t}\n");
+					va(s, "\t\t}\n");
 				}
 			}
 		}
-		sb_append(s, "\t}\n");
-		sb_append(s, "\treturn dst;\n");
-		sb_append(s, "}\n");
+		va(s, "\t}\n");
+		va(s, "\treturn dst;\n");
+		va(s, "}\n");
 	}
 
 	GenerateStringHashSource(s);
 
-	sb_replace_all_inplace(s, "\n", "\r\n");
-
+	s = ReplaceChar(s, '\n', "\r\n");
 	WriteAndReportFileData(s, srcDir, prefix, "structs_generated.c");
-	sb_reset(&data);
 }
 
-void GenerateStructs(const char *prefix, const char *includePrefix, sb_t *srcDir, sb_t *includeDir)
+void GenerateStructs(const char *prefix, const char *includePrefix, const char *srcDir, const char *includeDir)
 {
 	GenerateStructsHeader(prefix, includeDir);
 	GenerateStructsSource(prefix, includePrefix, srcDir);

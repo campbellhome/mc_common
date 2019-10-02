@@ -3,45 +3,35 @@
 
 #pragma once
 
-#include "sb.h"
+#define _HAS_EXCEPTIONS 0
+#define _ITERATOR_DEBUG_LEVEL 0
 
-#if defined(__cplusplus)
-extern "C" {
-#endif
+#include "bb_common.h"
+#include <string>
+#include <vector>
 
-typedef struct preprocInputDir {
-	sb_t dir;
-	sb_t base;
-} preprocInputDir;
+struct preprocInputDir {
+	std::string dir;
+	std::string base;
+};
 
-typedef struct preprocInputDirs {
-	u32 count;
-	u32 allocated;
-	preprocInputDir* data;
-} preprocInputDirs;
+struct preprocInputConfig {
+	b32 checkFonts = false;
+	std::vector< preprocInputDir > sourceDirs;
+	std::vector< preprocInputDir > includeDirs;
+};
 
-typedef struct preprocInputConfig {
-	b32 checkFonts;
-	preprocInputDirs sourceDirs;
-	preprocInputDirs includeDirs;
-} preprocInputConfig;
+struct preprocOutputConfig {
+	std::string prefix;
+	std::string sourceDir;
+	std::string includeDir;
+	std::string baseDir;
+};
 
-typedef struct preprocOutputConfig {
-	sb_t prefix;
-	sb_t sourceDir;
-	sb_t includeDir;
-	sb_t baseDir;
-} preprocOutputConfig;
-
-typedef struct preprocConfig {
-	b32 bb;
+struct preprocConfig {
+	b32 bb = false;
 	preprocInputConfig input;
 	preprocOutputConfig output;
-} preprocConfig;
+};
 
-void reset_preprocConfig(preprocConfig *obj);
 preprocConfig read_preprocConfig(const char *path);
-
-#if defined(__cplusplus)
-} // extern "C"
-#endif
