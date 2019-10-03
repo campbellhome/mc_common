@@ -75,6 +75,7 @@ void buildDependencyTable_trimToken(span_t *token)
 	span_trim_char_start(token, ' ');
 	span_trim_char_start(token, ' ');
 	span_trim_char_end(token, '\n');
+	span_trim_char_end(token, '\r');
 	span_trim_char_end(token, '\\');
 	span_trim_char_end(token, ' ');
 	span_trim_char_end(token, ':');
