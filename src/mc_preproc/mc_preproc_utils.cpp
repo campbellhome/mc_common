@@ -184,7 +184,6 @@ void WriteAndReportFileData(const std::string &data, const char *srcDir, const c
 	std::string existing = ReadFileContents(path);
 	if(existing == data) {
 		BB_LOG("preproc", "Skipped updating %s", pathName);
-		printf("Skipped updating %s\n", pathName);
 	} else {
 		FILE *fp = fopen(pathName, "wb");
 		if(fp) {
