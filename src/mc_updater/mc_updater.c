@@ -48,7 +48,6 @@ static mc_updater_globals s_globals;
 
 int mc_updater_do_update(const char *version, const char *sourcePath, const char *targetDir)
 {
-	b32 success = false;
 	if(!path_mkdir(targetDir)) {
 		BB_ERROR("Extract", "Failed to create dir %s", targetDir);
 		return false;
@@ -95,6 +94,7 @@ int mc_updater_do_update(const char *version, const char *sourcePath, const char
 	sbs_reset(&filesToRemove);
 
 	// extract new files
+	b32 success = true;
 	mz_uint numFiles = mz_zip_reader_get_num_files(&sourceZipArchive);
 	for(mz_uint i = 0; i < numFiles; ++i) {
 		mz_zip_archive_file_stat fileStat;
