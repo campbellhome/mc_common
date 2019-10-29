@@ -31,9 +31,9 @@ typedef struct updateManifest_s {
 	sb_t latest;
 } updateManifest_t;
 
-sb_t update_get_archive_name(const char *rootDir, const char *name);
+sb_t update_get_archive_name(const char *rootDir, const char* appName, const char *name);
 const char *update_resolve_version(const updateManifest_t *manifest, const char *versionName);
-updateManifest_t updateManifest_build(const char *updateManifestDir);
+updateManifest_t updateManifest_build(const char *updateManifestDir, const char* appName);
 
 void updateVersionName_reset(updateVersionName_t *val);
 void updateVersion_reset(updateVersion_t *val);

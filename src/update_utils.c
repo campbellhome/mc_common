@@ -16,10 +16,10 @@ static int update_version_compare(const void *_a, const void *_b)
 	return -strcmp(sb_get(&a->name), sb_get(&b->name));
 }
 
-sb_t update_get_archive_name(const char *rootDir, const char *name)
+sb_t update_get_archive_name(const char *rootDir, const char *appName, const char *name)
 {
 	sb_t path = { BB_EMPTY_INITIALIZER };
-	sb_va(&path, "%s/%s/bb_%s.zip", rootDir, name, name);
+	sb_va(&path, "%s/%s/%s_%s.zip", rootDir, name, appName, name);
 	path_resolve_inplace(&path);
 	return path;
 }
@@ -34,7 +34,7 @@ const char *update_resolve_version(const updateManifest_t *manifest, const char 
 	return versionName;
 }
 
-updateManifest_t updateManifest_build(const char *updateManifestDir)
+updateManifest_t updateManifest_build(const char *updateManifestDir, const char *appName)
 {
 	updateManifest_t manifest = { BB_EMPTY_INITIALIZER };
 	DIR *d = opendir(updateManifestDir);
@@ -43,7 +43,7 @@ updateManifest_t updateManifest_build(const char *updateManifestDir)
 		while((dir = readdir(d)) != NULL) {
 			if(dir->d_type == DT_DIR) {
 				if(strcmp(dir->d_name, ".") && strcmp(dir->d_name, "..")) {
-					sb_t archivePath = update_get_archive_name(updateManifestDir, dir->d_name);
+					sb_t archivePath = update_get_archive_name(updateManifestDir, appName, dir->d_name);
 					const char *archiveName = sb_get(&archivePath);
 					if(bb_file_readable(archiveName)) {
 						updateVersion_t update = { BB_EMPTY_INITIALIZER };

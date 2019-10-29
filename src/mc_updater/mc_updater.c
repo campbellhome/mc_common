@@ -239,7 +239,7 @@ b32 mc_updater_create_build(const char *manifestDir)
 			path_mkdir(va("%s/%u", manifestDir, newVersion));
 			const char *archiveName = va("%s/%u/%s_%u.zip", manifestDir, newVersion, s_globals.appdataName, newVersion);
 			if(fileData_writeIfChanged(archiveName, NULL, fileData)) {
-				updatedManifest = updateManifest_build(manifestDir);
+				updatedManifest = updateManifest_build(manifestDir, s_globals.appdataName);
 				sb_append(&updatedManifest.stable, sb_get(&originalManifest.stable));
 				if(updatedManifest.versions.count == originalManifest.versions.count + 1) {
 					val = json_serialize_updateManifest_t(&updatedManifest);
@@ -385,7 +385,7 @@ b32 mc_updater_main(mc_updater_globals *globals)
 
 	sb_t sbSourcePath = { BB_EMPTY_INITIALIZER };
 	if(version && sourceDir && !sourcePath) {
-		sbSourcePath = update_get_archive_name(sourceDir, version);
+		sbSourcePath = update_get_archive_name(sourceDir, version, s_globals.appdataName);
 		sourcePath = sbSourcePath.data;
 	}
 
