@@ -385,7 +385,7 @@ b32 mc_updater_main(mc_updater_globals *globals)
 
 	sb_t sbSourcePath = { BB_EMPTY_INITIALIZER };
 	if(version && sourceDir && !sourcePath) {
-		sbSourcePath = update_get_archive_name(sourceDir, version, s_globals.appdataName);
+		sbSourcePath = update_get_archive_name(sourceDir, s_globals.appdataName, version);
 		sourcePath = sbSourcePath.data;
 	}
 
@@ -394,9 +394,7 @@ b32 mc_updater_main(mc_updater_globals *globals)
 	BB_TRACE(kBBLogLevel_Verbose, "Startup", "Target dir: %s", targetDir.data ? targetDir.data : "(none)");
 
 	if(version && *version && sourcePath && *sourcePath && targetDir.data && *targetDir.data) {
-		if(!mc_updater_do_update(version, sourcePath, targetDir.data)) {
-			success = false;
-		}
+		success = mc_updater_do_update(version, sourcePath, targetDir.data);
 	} else {
 		if(!version && !sourcePath && sourceDir && cmdline_find("-create") > 0) {
 			success = mc_updater_create_build(sourceDir);
