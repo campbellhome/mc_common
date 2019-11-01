@@ -37,16 +37,23 @@ span_t tokenize(const char **bufferCursor, const char *delimiters)
 
 	// step to end of string
 	const char *start = buffer;
+	b32 bBackslash = false;
 	if(isQuotedString) {
 		b32 bMultilineDelimiter = strchr(delimiters, '\n') != NULL;
-		if(bMultilineDelimiter) {
-			while(*buffer && *buffer != '\"' && *buffer != '\n') {
-				++buffer;
+		while(*buffer) {
+			if(bMultilineDelimiter && *buffer == '\n')
+				break;
+
+			if(bBackslash) {
+				bBackslash = false;
+			} else {
+				if(*buffer == '\\') {
+					bBackslash = true;
+				} else if(*buffer == '\"') {
+					break;
+				}
 			}
-		} else {
-			while(*buffer && *buffer != '\"') {
-				++buffer;
-			}
+			++buffer;
 		}
 	} else {
 		while(*buffer && !strchr(delimiters, *buffer)) {
