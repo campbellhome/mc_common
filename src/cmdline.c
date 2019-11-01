@@ -6,6 +6,7 @@
 #include "bb_string.h"
 #include "path_utils.h"
 #include "sb.h"
+#include "str.h"
 #include "tokenize.h"
 #include <stdlib.h>
 
@@ -85,6 +86,7 @@ void cmdline_init_composite(const char *src)
 				if(*cursor)
 					++cursor;
 				*(char *)token.end = '\0';
+				strunescape((char *)token.start);
 				*(s_argv + i) = token.start;
 			}
 		} else {

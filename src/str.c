@@ -24,3 +24,25 @@ u64 strsimplehash(const char *s)
 	}
 	return h;
 }
+
+size_t strunescape(char *s)
+{
+	const char *src = s;
+	size_t len = 0;
+	if(src) {
+		while(*src) {
+			if(src[0] == '\\' && src[1] == '\\') {
+				*s++ = '\\';
+				++src;
+			} else if(src[0] == '\\' && src[1] == '\"') {
+				*s++ = '\"';
+				++src;
+			} else {
+				*s++ = *src;
+			}
+			++src;
+			++len;
+		}
+	}
+	return len;
+}
