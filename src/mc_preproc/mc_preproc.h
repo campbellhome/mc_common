@@ -66,3 +66,6 @@ void TestResolvePath();
 
 std::string ReadFileContents(const std::string &path);
 void WriteAndReportFileData(const std::string &data, const char *srcDir, const char *prefix, const char *suffix);
+
+void ForwardDeclarations(std::string& s);
+void InitialComments(std::string& s);
