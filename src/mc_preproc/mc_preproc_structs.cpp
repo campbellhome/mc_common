@@ -196,6 +196,7 @@ void GenerateStringHashSource(std::string &s)
 			va(s, "\n");
 			va(s, "%s *%s_find_internal(%s *table, const %s *entry, u64 hashValue)\n", entryFullName, tableShortName, tableFullName, entryFullName);
 			va(s, "{\n");
+			va(s, "	BB_ASSERT_MSG(table->count, \"need to initialize hash table count\");\n");
 			va(s, "	u32 chainIndex = hashValue %% table->count;\n");
 			va(s, "	%s *chain = table->data + chainIndex;\n", chainFullName);
 			va(s, "	for(u32 i = 0; i < chain->count; ++i) {\n");
@@ -210,6 +211,7 @@ void GenerateStringHashSource(std::string &s)
 			va(s, "\n");
 			va(s, "%s *%s_insert_internal(%s *table, const %s *entry, u64 hashValue)\n", entryFullName, tableShortName, tableFullName, entryFullName);
 			va(s, "{\n");
+			va(s, "	BB_ASSERT_MSG(table->count, \"need to initialize hash table count\");\n");
 			va(s, "	%s *result = %s_find_internal(table, entry, hashValue);\n", entryFullName, tableFullName);
 			va(s, "	if(!result) {\n");
 			va(s, "		u32 chainIndex = hashValue %% table->count;\n");

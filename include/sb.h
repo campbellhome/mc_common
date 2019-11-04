@@ -44,6 +44,7 @@ AUTOJSON AUTOHEADERONLY AUTOFROMLOC typedef struct sbs_s {
 
 void sb_init(sb_t *sb);
 void sb_reset_from_loc(const char *file, int line, sb_t *sb);
+void sb_clear(sb_t *sb);
 u32 sb_len(sb_t *sb);
 void sb_replace_char_inplace(sb_t *sb, char src, char dst);
 sb_t sb_from_span_from_loc(const char *file, int line, span_t span);
@@ -64,6 +65,13 @@ void sb_replace_all_inplace_from_loc(const char *file, int line, sb_t *src, cons
 void sb_toupper_inline(sb_t *s);
 void sb_tolower_inline(sb_t *s);
 const char *sb_get(const sb_t *sb);
+
+// NOTE: case-sensitive
+int sbs_sort(const void *_a, const void *_b);
+void sbs_add_unique_from_loc(const char *file, int line, sbs_t *sbs, sb_t value);
+void sbs_remove_unique(sbs_t *sbs, sb_t value);
+b32 sbs_contains(sbs_t *sbs, sb_t value);
+#define sbs_add_unique(sbs, value) sbs_add_unique_from_loc(__FILE__, __LINE__, (sbs), (value))
 
 #if !defined(sbs_clone)
 #define sbs_clone(sbs) sbs_clone_from_loc(__FILE__, __LINE__, sbs)

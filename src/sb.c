@@ -25,6 +25,19 @@ void sb_reset_from_loc(const char *file, int line, sb_t *sb)
 	}
 }
 
+void sb_clear(sb_t *sb)
+{
+	if(sb->allocated) {
+		sb->count = 0;
+		if(sb->data) {
+			sb->data[0] = '\0';
+		}
+	} else {
+		sb->count = 0;
+		sb->data = 0;
+	}
+}
+
 sb_t sb_from_span_from_loc(const char *file, int line, span_t span)
 {
 	sb_t dst = { BB_EMPTY_INITIALIZER };
@@ -363,4 +376,42 @@ sbs_t sbs_from_tokenize_from_loc(const char *file, int line, const char **buffer
 		token = tokenize(bufferCursor, delimiters);
 	}
 	return sbs;
+}
+
+int sbs_sort(const void *_a, const void *_b)
+{
+	const sb_t *a = (const sb_t *)_a;
+	const sb_t *b = (const sb_t *)_b;
+	return strcmp(sb_get(a), sb_get(b));
+}
+
+void sbs_add_unique_from_loc(const char *file, int line, sbs_t *sbs, sb_t value)
+{
+	for(u32 i = 0; i < sbs->count; ++i) {
+		if(!strcmp(sb_get(sbs->data + i), sb_get(&value))) {
+			return;
+		}
+	}
+	bba_push_from_loc(file, line, *sbs, sb_clone(&value));
+}
+
+void sbs_remove_unique(sbs_t *sbs, sb_t value)
+{
+	for(u32 i = 0; i < sbs->count; ++i) {
+		if(!strcmp(sb_get(sbs->data + i), sb_get(&value))) {
+			sb_reset(sbs->data + i);
+			bba_erase(*sbs, i);
+			return;
+		}
+	}
+}
+
+b32 sbs_contains(sbs_t *sbs, sb_t value)
+{
+	for(u32 i = 0; i < sbs->count; ++i) {
+		if(!strcmp(sb_get(sbs->data + i), sb_get(&value))) {
+			return true;
+		}
+	}
+	return false;
 }
