@@ -43,6 +43,7 @@ size_t strunescape(char *s)
 			++src;
 			++len;
 		}
+		*s = '\0';
 	}
 	return len;
 }

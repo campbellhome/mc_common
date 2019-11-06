@@ -18,15 +18,24 @@ static sb_t s_commandline;
 
 static void cmdline_quote_and_append(sb_t *str, const char *arg)
 {
+	b32 bNeedsQuote = strchr(arg, ' ') != NULL;
+	if(bNeedsQuote) {
+	}
 	if(sb_len(str)) {
 		sb_append_char(str, ' ');
 	}
-	if(strchr(arg, ' ')) {
+	if(bNeedsQuote) {
 		sb_append_char(str, '\"');
-		sb_append(str, arg);
+	}
+	while(*arg) {
+		if(*arg == '\\' || *arg == '\"') {
+			sb_append_char(str, '\\');
+		}
+		sb_append_char(str, *arg);
+		++arg;
+	}
+	if(bNeedsQuote) {
 		sb_append_char(str, '\"');
-	} else {
-		sb_append(str, arg);
 	}
 }
 
