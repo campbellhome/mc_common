@@ -10,6 +10,7 @@ extern "C" {
 #endif
 
 const char *path_get_filename(const char *path);
+const char* path_get_dir(const char* path);
 sb_t path_resolve(sb_t src);
 void path_resolve_inplace(sb_t *path);
 void path_remove_filename(sb_t *path);

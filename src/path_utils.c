@@ -5,6 +5,7 @@
 #include "bb_array.h"
 #include "bb_string.h"
 #include "bb_wrap_stdio.h"
+#include "va.h"
 
 char path_get_separator(void)
 {
@@ -24,6 +25,14 @@ const char *path_get_filename(const char *path)
 	if(sep)
 		return sep + 1;
 	return path;
+}
+
+const char *path_get_dir(const char *path)
+{
+	const char *filename = path_get_filename(path);
+	if(filename <= path)
+		return "";
+	return va("%.*s", filename - path, path);
 }
 
 sb_t path_resolve(sb_t src)
