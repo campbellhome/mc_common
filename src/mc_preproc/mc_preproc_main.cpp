@@ -402,12 +402,11 @@ static void mm_lexer_scan_file_for_keyword(const char *text, lexer_size text_len
 	}
 
 	if(foundAny) {
-		size_t basePathLen = strlen(basePath) + 1;
-		if(g_bHeaderOnly) {
-			g_paths.insert(path + basePathLen);
-		} else {
-			g_paths.insert((std::string)g_includePrefix + (path + basePathLen));
+		size_t basePathLen = strlen(basePath);
+		if(basePathLen) {
+			++basePathLen;
 		}
+		g_paths.insert(path + basePathLen);
 	}
 }
 
@@ -423,7 +422,11 @@ void find_files_in_dir(const char *dir, const char *desiredExt, std::set< std::s
 	HANDLE hFind;
 
 	std::string filter;
-	va(filter, "%s\\*.*", dir);
+	std::string dirPrefix = dir;
+	if (*dir) {
+		dirPrefix += "\\";
+	}
+	va(filter, "%s*.*", dirPrefix.c_str());
 	if(INVALID_HANDLE_VALUE != (hFind = FindFirstFileA(filter.c_str(), &find))) {
 		do {
 			if(find.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
@@ -437,7 +440,7 @@ void find_files_in_dir(const char *dir, const char *desiredExt, std::set< std::s
 			} else {
 				const char *ext = strrchr(find.cFileName, '.');
 				if(ext && !_stricmp(ext, desiredExt)) {
-					sd.insert(ResolvePath(va("%s\\%s", dir, find.cFileName)));
+					sd.insert(ResolvePath(va("%s%s", dirPrefix.c_str(), find.cFileName)));
 				}
 			}
 		} while(FindNextFileA(hFind, &find));
@@ -548,11 +551,11 @@ static void GenerateFromJson(b32 bb, const char *configPath)
 	}
 
 	g_bHeaderOnly = true;
-	for (const preprocInputDir& dir : config.input.includeDirs) {
+	for(const preprocInputDir &dir : config.input.includeDirs) {
 		scanHeaders(&configDir, &dir);
 	}
 	g_bHeaderOnly = false;
-	for (const preprocInputDir& dir : config.input.sourceDirs) {
+	for(const preprocInputDir &dir : config.input.sourceDirs) {
 		scanHeaders(&configDir, &dir);
 	}
 
