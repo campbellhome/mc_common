@@ -18,10 +18,16 @@ typedef struct tag_messageBox {
 	messageBoxFunc *callback;
 } messageBox;
 
-void mb_queue(messageBox mb);
-messageBox *mb_get_active(void);
-void mb_remove_active(void);
-void mb_shutdown(void);
+typedef struct tag_messageBoxes {
+	u32 count;
+	u32 allocated;
+	messageBox *data;
+} messageBoxes;
+
+void mb_queue(messageBox mb, messageBoxes* boxes);
+messageBox *mb_get_active(messageBoxes *boxes);
+void mb_remove_active(messageBoxes *boxes);
+void mb_shutdown(messageBoxes *boxes);
 
 #if defined(__cplusplus)
 }
