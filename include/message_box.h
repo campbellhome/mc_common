@@ -22,12 +22,16 @@ typedef struct tag_messageBoxes {
 	u32 count;
 	u32 allocated;
 	messageBox *data;
+	u32 bgColor[2];
+	b32 modal;
+	b32 manualUpdate;
 } messageBoxes;
 
-void mb_queue(messageBox mb, messageBoxes* boxes);
+void mb_queue(messageBox mb, messageBoxes *boxes);
 messageBox *mb_get_active(messageBoxes *boxes);
 void mb_remove_active(messageBoxes *boxes);
 void mb_shutdown(messageBoxes *boxes);
+messageBoxes *mb_get_queue(void);
 
 #if defined(__cplusplus)
 }

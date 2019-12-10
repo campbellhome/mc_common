@@ -56,3 +56,8 @@ void mb_shutdown(messageBoxes *boxes)
 	}
 	bba_free(*boxes);
 }
+
+messageBoxes *mb_get_queue(void)
+{
+	return &s_mb;
+}
