@@ -84,6 +84,7 @@ processSpawnResult_t process_spawn(const char *dir, const char *cmdline, process
 			}
 			CloseHandle(pi.hThread);
 			CloseHandle(pi.hProcess);
+			AllowSetForegroundWindow(pi.dwProcessId);
 			return result;
 		} else {
 			process_report_error("CreateProcess", cmdline, processLogType);
@@ -152,6 +153,7 @@ processSpawnResult_t process_spawn(const char *dir, const char *cmdline, process
 									if(processLogType == kProcessLog_All) {
 										BB_LOG("process", "Created tracked process: %s\n", cmdline);
 									}
+									AllowSetForegroundWindow(pi.dwProcessId);
 									result.process = malloc(sizeof(win32Process_t));
 									win32Process_t *process = (win32Process_t *)result.process;
 									if(process) {
