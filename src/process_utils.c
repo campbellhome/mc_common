@@ -394,3 +394,17 @@ void process_get_timings(process_t *process, const char **start, const char **en
 }
 
 #endif // #else // #if BB_USING(BB_PLATFORM_WINDOWS)
+
+processTickResult_t process_await(process_t *process)
+{
+	processTickResult_t result = { BB_EMPTY_INITIALIZER };
+	if(process) {
+		while(!process->done) {
+			result = process_tick(process);
+			if(!result.done) {
+				bb_sleep_ms(10);
+			}
+		}
+	}
+	return result;
+}
