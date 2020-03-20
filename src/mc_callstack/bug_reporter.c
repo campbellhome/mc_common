@@ -188,7 +188,7 @@ void bug_report_write_runtime_xml(const bugReport *report)
 		sb_va(&path, "%s\\CrashContext.runtime-xml", sb_get(&report->dir));
 		path_resolve_inplace(&path);
 		bb_file_handle_t fp = bb_file_open_for_write(sb_get(&path));
-		if(fp) {
+		if(fp != BB_INVALID_FILE_HANDLE) {
 			bb_file_write(fp, contents.data, contents.count - 1);
 			bb_file_close(fp);
 		}
