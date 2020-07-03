@@ -30,7 +30,7 @@
 #include "bb_wrap_dirent.h"
 #include "parson/parson.h"
 
-BB_WARNING_PUSH(4100 4127 4232 4242 4244 4255 4468 4548 4668 4820 5045)
+BB_WARNING_PUSH(4061 4100 4127 4232 4242 4244 4255 4468 4548 4668 4820 5045)
 #if defined(__clang__)
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-W#pragma-messages"
