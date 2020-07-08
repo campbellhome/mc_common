@@ -11,6 +11,7 @@ static void GenerateJsonHeader(const char *prefix, const char *srcDir)
 	va(s, "\n");
 	va(s, "#pragma once\n");
 	va(s, "\n");
+	va(s, "#include \"bb.h\" // pull in stdint.h warning suppression for VS 2019 16.4 when compiling .c files\n");
 	va(s, "#include \"parson/parson.h\"\n");
 	va(s, "\n");
 	va(s, "#if defined(__cplusplus)\n");
@@ -87,7 +88,6 @@ static void GenerateJsonSource(const char *prefix, const char *includePrefix, co
 	InitialComments(s);
 	va(s, "\n");
 	va(s, "#include \"%s%sjson_generated.h\"\n", includePrefix, prefix);
-	va(s, "#include \"bb.h\" // pull in stdint.h warning suppression for VS 2019 16.4 when compiling .c files\n");
 	va(s, "#include \"bb_array.h\"\n");
 	va(s, "#include \"json_utils.h\"\n");
 	va(s, "#include \"va.h\"\n");
