@@ -23,6 +23,15 @@ public:
 
 	bb_critical_section cs = { BB_EMPTY_INITIALIZER };
 
+	void SetSymbolServer(b32 bSymbolServer)
+	{
+		if(bSymbolServer) {
+			m_options |= StackWalker::StackWalkOptions::SymUseSymSrv;
+		} else {
+			m_options &= ~StackWalker::StackWalkOptions::SymUseSymSrv;
+		}
+	}
+
 protected:
 	virtual void OnOutput(LPCSTR /*szText*/) override {}
 	virtual void OnCallstackEntry(CallstackEntryType eType, CallstackEntry &entry) override final
@@ -62,9 +71,10 @@ protected:
 
 static BBStackWalker s_stackwalker;
 
-extern "C" void callstack_init(void)
+extern "C" void callstack_init(b32 bSymbolServer)
 {
 	bb_critical_section_init(&s_stackwalker.cs);
+	s_stackwalker.SetSymbolServer(bSymbolServer);
 	s_stackwalker.LoadModules();
 }
 

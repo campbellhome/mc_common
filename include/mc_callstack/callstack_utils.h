@@ -9,7 +9,7 @@
 extern "C" {
 #endif
 
-void callstack_init(void);
+void callstack_init(b32 bSymbolServer);
 void callstack_shutdown(void);
 sb_t callstack_generate_sb(int linesToSkip);
 sbs_t callstack_generate_sbs(int linesToSkip);
