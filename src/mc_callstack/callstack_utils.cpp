@@ -17,6 +17,7 @@ class BBStackWalker : public StackWalker
 public:
 	s32 linesToSkip = 0;
 	b32 done = false;
+	b32 loadedModules = false;
 
 	sb_t *sb = nullptr;
 	sbs_t *sbs = nullptr;
@@ -26,10 +27,11 @@ public:
 	void SetSymbolServer(b32 bSymbolServer)
 	{
 		if(bSymbolServer) {
-			m_options |= StackWalker::StackWalkOptions::SymUseSymSrv;
+			m_options |= (StackWalker::StackWalkOptions::SymUseSymSrv | StackWalker::StackWalkOptions::SymBuildPath);
 		} else {
-			m_options &= ~StackWalker::StackWalkOptions::SymUseSymSrv;
+			m_options &= (~StackWalker::StackWalkOptions::SymUseSymSrv | StackWalker::StackWalkOptions::SymBuildPath);
 		}
+		m_options = StackWalker::StackWalkOptions::RetrieveNone;
 	}
 
 protected:
@@ -75,7 +77,6 @@ extern "C" void callstack_init(b32 bSymbolServer)
 {
 	bb_critical_section_init(&s_stackwalker.cs);
 	s_stackwalker.SetSymbolServer(bSymbolServer);
-	s_stackwalker.LoadModules();
 }
 
 extern "C" void callstack_shutdown(void)
@@ -87,6 +88,10 @@ extern "C" sb_t callstack_generate_sb(int linesToSkip)
 {
 	sb_t sb = { BB_EMPTY_INITIALIZER };
 	bb_critical_section_lock(&s_stackwalker.cs);
+	if(!s_stackwalker.loadedModules) {
+		s_stackwalker.loadedModules = true;
+		s_stackwalker.LoadModules();
+	}
 	s_stackwalker.linesToSkip = linesToSkip + 2;
 	s_stackwalker.done = false;
 	s_stackwalker.sb = &sb;
@@ -100,6 +105,10 @@ extern "C" sbs_t callstack_generate_sbs(int linesToSkip)
 {
 	sbs_t sbs = { BB_EMPTY_INITIALIZER };
 	bb_critical_section_lock(&s_stackwalker.cs);
+	if(!s_stackwalker.loadedModules) {
+		s_stackwalker.loadedModules = true;
+		s_stackwalker.LoadModules();
+	}
 	s_stackwalker.linesToSkip = linesToSkip + 2;
 	s_stackwalker.done = false;
 	s_stackwalker.sb = nullptr;
