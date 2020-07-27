@@ -13,6 +13,20 @@
 extern "C" {
 #endif
 
+struct sb_s;
+struct sbs_s;
+struct sdictEntry_s;
+struct sdict_s;
+struct uuid_node_s;
+struct buildCommand_s;
+struct buildCommands_s;
+struct sourceTimestampEntry;
+struct sourceTimestampChain;
+struct sourceTimestampTable;
+struct buildDependencyEntry;
+struct buildDependencyChain;
+struct buildDependencyTable;
+
 typedef struct sb_s sb_t;
 typedef struct sbs_s sbs_t;
 typedef struct sdictEntry_s sdictEntry_t;
@@ -41,19 +55,45 @@ void buildDependencyEntry_reset_from_loc(const char *file, int line, buildDepend
 void buildDependencyChain_reset_from_loc(const char *file, int line, buildDependencyChain *val);
 void buildDependencyTable_reset_from_loc(const char *file, int line, buildDependencyTable *val);
 
+#if !defined(__cplusplus) || defined(DECLARE_sb_clone)
 sb_t sb_clone_from_loc(const char *file, int line, const sb_t *src);
+#endif
+#if !defined(__cplusplus) || defined(DECLARE_sbs_clone)
 sbs_t sbs_clone_from_loc(const char *file, int line, const sbs_t *src);
+#endif
+#if !defined(__cplusplus) || defined(DECLARE_sdictEntry_clone)
 sdictEntry_t sdictEntry_clone(const sdictEntry_t *src);
+#endif
+#if !defined(__cplusplus) || defined(DECLARE_sdict_clone)
 sdict_t sdict_clone(const sdict_t *src);
+#endif
+#if !defined(__cplusplus) || defined(DECLARE_uuid_node_clone)
 uuid_node_t uuid_node_clone(const uuid_node_t *src);
+#endif
+#if !defined(__cplusplus) || defined(DECLARE_buildCommand_clone)
 buildCommand_t buildCommand_clone_from_loc(const char *file, int line, const buildCommand_t *src);
+#endif
+#if !defined(__cplusplus) || defined(DECLARE_buildCommands_clone)
 buildCommands_t buildCommands_clone_from_loc(const char *file, int line, const buildCommands_t *src);
+#endif
+#if !defined(__cplusplus) || defined(DECLARE_sourceTimestampEntry_clone)
 sourceTimestampEntry sourceTimestampEntry_clone_from_loc(const char *file, int line, const sourceTimestampEntry *src);
+#endif
+#if !defined(__cplusplus) || defined(DECLARE_sourceTimestampChain_clone)
 sourceTimestampChain sourceTimestampChain_clone_from_loc(const char *file, int line, const sourceTimestampChain *src);
+#endif
+#if !defined(__cplusplus) || defined(DECLARE_sourceTimestampTable_clone)
 sourceTimestampTable sourceTimestampTable_clone_from_loc(const char *file, int line, const sourceTimestampTable *src);
+#endif
+#if !defined(__cplusplus) || defined(DECLARE_buildDependencyEntry_clone)
 buildDependencyEntry buildDependencyEntry_clone_from_loc(const char *file, int line, const buildDependencyEntry *src);
+#endif
+#if !defined(__cplusplus) || defined(DECLARE_buildDependencyChain_clone)
 buildDependencyChain buildDependencyChain_clone_from_loc(const char *file, int line, const buildDependencyChain *src);
+#endif
+#if !defined(__cplusplus) || defined(DECLARE_buildDependencyTable_clone)
 buildDependencyTable buildDependencyTable_clone_from_loc(const char *file, int line, const buildDependencyTable *src);
+#endif
 
 #if defined(__cplusplus)
 } // extern "C"

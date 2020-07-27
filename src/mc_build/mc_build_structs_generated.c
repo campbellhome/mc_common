@@ -202,6 +202,7 @@ int sourceTimestampEntry_compare(const sourceTimestampEntry *a, const sourceTime
 
 sourceTimestampEntry *sourceTimestampTable_find_internal(sourceTimestampTable *table, const sourceTimestampEntry *entry, u64 hashValue)
 {
+	BB_ASSERT_MSG(table->count, "need to initialize hash table count");
 	u32 chainIndex = hashValue % table->count;
 	sourceTimestampChain *chain = table->data + chainIndex;
 	for(u32 i = 0; i < chain->count; ++i) {
@@ -215,6 +216,7 @@ sourceTimestampEntry *sourceTimestampTable_find_internal(sourceTimestampTable *t
 
 sourceTimestampEntry *sourceTimestampTable_insert_internal(sourceTimestampTable *table, const sourceTimestampEntry *entry, u64 hashValue)
 {
+	BB_ASSERT_MSG(table->count, "need to initialize hash table count");
 	sourceTimestampEntry *result = sourceTimestampTable_find_internal(table, entry, hashValue);
 	if(!result) {
 		u32 chainIndex = hashValue % table->count;
@@ -312,6 +314,7 @@ int buildDependencyEntry_compare(const buildDependencyEntry *a, const buildDepen
 
 buildDependencyEntry *buildDependencyTable_find_internal(buildDependencyTable *table, const buildDependencyEntry *entry, u64 hashValue)
 {
+	BB_ASSERT_MSG(table->count, "need to initialize hash table count");
 	u32 chainIndex = hashValue % table->count;
 	buildDependencyChain *chain = table->data + chainIndex;
 	for(u32 i = 0; i < chain->count; ++i) {
@@ -325,6 +328,7 @@ buildDependencyEntry *buildDependencyTable_find_internal(buildDependencyTable *t
 
 buildDependencyEntry *buildDependencyTable_insert_internal(buildDependencyTable *table, const buildDependencyEntry *entry, u64 hashValue)
 {
+	BB_ASSERT_MSG(table->count, "need to initialize hash table count");
 	buildDependencyEntry *result = buildDependencyTable_find_internal(table, entry, hashValue);
 	if(!result) {
 		u32 chainIndex = hashValue % table->count;
