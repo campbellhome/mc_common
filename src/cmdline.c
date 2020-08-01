@@ -28,7 +28,7 @@ static void cmdline_quote_and_append(sb_t *str, const char *arg)
 		sb_append_char(str, '\"');
 	}
 	while(*arg) {
-		if(*arg == '\\' || *arg == '\"') {
+		if(/**arg == '\\' ||*/ *arg == '\"') {
 			sb_append_char(str, '\\');
 		}
 		sb_append_char(str, *arg);
