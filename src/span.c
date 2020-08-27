@@ -1,4 +1,4 @@
-// Copyright (c) 2012-2019 Matt Campbell
+// Copyright (c) 2012-2020 Matt Campbell
 // MIT license (see License.txt)
 
 #include "span.h"
@@ -47,4 +47,19 @@ int span_stricmp(span_t a, span_t b)
 	} else {
 		return blen > alen;
 	}
+}
+
+int span_starts_with(span_t span, const char *str, span_case_e spanCase)
+{
+	size_t spanLen = span.end - span.start;
+	size_t strLen = strlen(str);
+	return (spanLen >= strLen && (spanCase == kSpanCaseSensitive ? !strncmp(span.start, str, strLen) : !bb_strnicmp(span.start, str, strLen)));
+}
+
+int span_ends_with(span_t span, const char *str, span_case_e spanCase)
+{
+	size_t spanLen = span.end - span.start;
+	size_t strLen = strlen(str);
+	const char *spanStart = span.start + (spanLen - strLen);
+	return (spanLen >= strLen && (spanCase == kSpanCaseSensitive ? !strncmp(spanStart, str, strLen) : !bb_strnicmp(spanStart, str, strLen)));
 }
