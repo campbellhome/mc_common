@@ -1,4 +1,4 @@
-// Copyright (c) 2012-2019 Matt Campbell
+// Copyright (c) 2012-2020 Matt Campbell
 // MIT license (see License.txt)
 
 #include "path_utils.h"
@@ -33,6 +33,26 @@ const char *path_get_dir(const char *path)
 	if(filename <= path)
 		return "";
 	return va("%.*s", filename - path, path);
+}
+
+b32 path_validate_filename(const char *filename)
+{
+	while(*filename) {
+		if(strchr("\"\':/\\%", *filename) != NULL)
+			return false;
+		++filename;
+	}
+	return true;
+}
+
+void path_fix_separators(char *path, char separator)
+{
+	while(path && *path) {
+		if(*path == '/' || *path == '\\') {
+			*path = separator;
+		}
+		++path;
+	}
 }
 
 sb_t path_resolve(sb_t src)

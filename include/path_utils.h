@@ -1,4 +1,4 @@
-// Copyright (c) 2012-2019 Matt Campbell
+// Copyright (c) 2012-2020 Matt Campbell
 // MIT license (see License.txt)
 
 #pragma once
@@ -11,6 +11,8 @@ extern "C" {
 
 const char *path_get_filename(const char *path);
 const char* path_get_dir(const char* path);
+b32 path_validate_filename(const char *filename);
+void path_fix_separators(char *path, char separator);
 sb_t path_resolve(sb_t src);
 void path_resolve_inplace(sb_t *path);
 void path_remove_filename(sb_t *path);
