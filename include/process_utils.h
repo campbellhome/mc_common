@@ -63,6 +63,7 @@ processTickResult_t process_tick(process_t *process);
 processTickResult_t process_await(process_t *process);
 void process_free(process_t *process);
 void process_get_timings(process_t *process, const char **start, const char **end, u64 *elapsed);
+b32 process_is_running(const char* processName);
 
 #if defined(__cplusplus)
 }

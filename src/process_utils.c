@@ -4,6 +4,7 @@
 #include "process_utils.h"
 #include "bb_array.h"
 #include "bb_criticalsection.h"
+#include "bb_string.h"
 #include "bb_thread.h"
 #include "bb_time.h"
 #include "dlist.h"
@@ -14,6 +15,8 @@
 #include <stdlib.h>
 
 #if BB_USING(BB_PLATFORM_WINDOWS)
+
+#include <Psapi.h>
 
 static bb_thread_return_t process_io_thread(void *);
 
@@ -357,6 +360,44 @@ void process_get_timings(process_t *base, const char **start, const char **end, 
 	*elapsed = (process->base.done) ? process->endMS - process->startMS : GetTickCount64() - process->startMS;
 }
 
+typedef struct tag_processIds {
+	u32 count;
+	u32 allocated;
+	DWORD *data;
+} processIds;
+static u32 s_numProcessesNeeded = 16 * 1024;
+
+b32 process_is_running(const char *processName)
+{
+	b32 ret = false;
+	processIds ids = { BB_EMPTY_INITIALIZER };
+	bba_add(ids, s_numProcessesNeeded);
+	if(ids.data) {
+		DWORD bytesUsed = 0;
+		u32 bytesNeeded = ids.count * sizeof(DWORD);
+		if(EnumProcesses(ids.data, bytesNeeded, &bytesUsed)) {
+			char moduleName[_MAX_PATH];
+			for(u32 i = 0; i < bytesUsed / sizeof(DWORD); ++i) {
+				HANDLE hProcess = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, FALSE, ids.data[i]);
+				if(hProcess) {
+					HMODULE hModule;
+					DWORD unused;
+					if(EnumProcessModules(hProcess, &hModule, sizeof(hModule), &unused)) {
+						if(GetModuleBaseNameA(hProcess, hModule, moduleName, sizeof(moduleName))) {
+							if(!bb_stricmp(processName, moduleName)) {
+								ret = true;
+								break;
+							}
+						}
+					}
+				}
+			}
+		}
+		bba_free(ids);
+	}
+	return ret;
+}
+
 #else // #if BB_USING(BB_PLATFORM_WINDOWS)
 
 void process_init(void)
@@ -391,6 +432,12 @@ void process_get_timings(process_t *process, const char **start, const char **en
 	BB_UNUSED(start);
 	BB_UNUSED(end);
 	BB_UNUSED(elapsed);
+}
+
+b32 process_is_running(const char *processName)
+{
+	BB_UNUSED(processName);
+	return false;
 }
 
 #endif // #else // #if BB_USING(BB_PLATFORM_WINDOWS)
