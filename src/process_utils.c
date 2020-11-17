@@ -390,6 +390,7 @@ b32 process_is_running(const char *processName)
 							}
 						}
 					}
+					CloseHandle(hProcess);
 				}
 			}
 		}
