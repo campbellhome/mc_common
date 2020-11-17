@@ -385,6 +385,7 @@ b32 process_is_running(const char *processName)
 					if(EnumProcessModules(hProcess, &hModule, sizeof(hModule), &unused)) {
 						if(GetModuleBaseNameA(hProcess, hModule, moduleName, sizeof(moduleName))) {
 							if(!bb_stricmp(processName, moduleName)) {
+								CloseHandle(hProcess);
 								ret = true;
 								break;
 							}
