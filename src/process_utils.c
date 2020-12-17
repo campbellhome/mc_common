@@ -400,6 +400,44 @@ b32 process_is_running(const char *processName)
 	return ret;
 }
 
+b32 process_terminate(const char *processName, u32 exitCode)
+{
+	b32 ret = false;
+	processIds ids = { BB_EMPTY_INITIALIZER };
+	bba_add(ids, s_numProcessesNeeded);
+	if(ids.data) {
+		DWORD selfProcessId = GetCurrentProcessId();
+		DWORD bytesUsed = 0;
+		u32 bytesNeeded = ids.count * sizeof(DWORD);
+		if(EnumProcesses(ids.data, bytesNeeded, &bytesUsed)) {
+			char moduleName[_MAX_PATH];
+			for(u32 i = 0; i < bytesUsed / sizeof(DWORD); ++i) {
+				HANDLE hProcess = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ | PROCESS_TERMINATE, FALSE, ids.data[i]);
+				if(hProcess) {
+					HMODULE hModule;
+					DWORD unused;
+					DWORD processId = GetProcessId(hProcess);
+					if(processId != selfProcessId) {
+						if(EnumProcessModules(hProcess, &hModule, sizeof(hModule), &unused)) {
+							if(GetModuleBaseNameA(hProcess, hModule, moduleName, sizeof(moduleName))) {
+								if(!bb_stricmp(processName, moduleName)) {
+									TerminateProcess(hProcess, exitCode);
+									CloseHandle(hProcess);
+									ret = true;
+									break;
+								}
+							}
+						}
+					}
+					CloseHandle(hProcess);
+				}
+			}
+		}
+		bba_free(ids);
+	}
+	return ret;
+}
+
 #else // #if BB_USING(BB_PLATFORM_WINDOWS)
 
 void process_init(void)
@@ -439,6 +477,13 @@ void process_get_timings(process_t *process, const char **start, const char **en
 b32 process_is_running(const char *processName)
 {
 	BB_UNUSED(processName);
+	return false;
+}
+
+b32 process_terminate(const char *processName, u32 exitCode)
+{
+	BB_UNUSED(processName);
+	BB_UNUSED(exitCode);
 	return false;
 }
 
