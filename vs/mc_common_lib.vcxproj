@@ -135,6 +135,10 @@
       <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5045;4232</DisableSpecificWarnings>
       <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5045;4232</DisableSpecificWarnings>
     </ClCompile>
+    <ClCompile Include="..\submodules\sqlite\sqlite3.c">
+      <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Level4</WarningLevel>
+      <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Level4</WarningLevel>
+    </ClCompile>
     <ClCompile Include="..\submodules\stackwalker\Main\StackWalker\StackWalker.cpp">
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Level3</WarningLevel>
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Level3</WarningLevel>
@@ -168,6 +172,7 @@
     <ClInclude Include="..\include\sb.h" />
     <ClInclude Include="..\include\sdict.h" />
     <ClInclude Include="..\include\span.h" />
+    <ClInclude Include="..\include\sqlite\wrap_sqlite3.h" />
     <ClInclude Include="..\include\str.h" />
     <ClInclude Include="..\include\system_error_utils.h" />
     <ClInclude Include="..\include\tasks.h" />
@@ -181,6 +186,8 @@
     <ClInclude Include="..\include\uuid_rfc4122\uuid_struct.h" />
     <ClInclude Include="..\include\va.h" />
     <ClInclude Include="..\submodules\parson\parson.h" />
+    <ClInclude Include="..\submodules\sqlite\sqlite3.h" />
+    <ClInclude Include="..\submodules\sqlite\sqlite3ext.h" />
     <ClInclude Include="..\submodules\stackwalker\Main\StackWalker\StackWalker.h" />
   </ItemGroup>
   <ItemGroup>

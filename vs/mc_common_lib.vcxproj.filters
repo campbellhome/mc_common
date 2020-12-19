@@ -106,6 +106,9 @@
     <ClCompile Include="..\src\system_error_utils.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\submodules\sqlite\sqlite3.c">
+      <Filter>Source Files\sqlite</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\include\appdata.h">
@@ -231,6 +234,15 @@
     <ClInclude Include="..\include\system_error_utils.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\submodules\sqlite\sqlite3ext.h">
+      <Filter>Header Files\sqlite</Filter>
+    </ClInclude>
+    <ClInclude Include="..\submodules\sqlite\sqlite3.h">
+      <Filter>Header Files\sqlite</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\sqlite\wrap_sqlite3.h">
+      <Filter>Header Files\sqlite</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Text Include="..\src\uuid_rfc4122\rfc4122.txt">
@@ -276,6 +288,12 @@
     </Filter>
     <Filter Include="Header Files\StackWalker">
       <UniqueIdentifier>{efda0b1b-d1f5-450a-ab1a-95ea5b965dfe}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\sqlite">
+      <UniqueIdentifier>{717365e7-77a4-4448-a0e0-40a5dc785c30}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\sqlite">
+      <UniqueIdentifier>{2c9bd971-231e-4098-92cd-e8d20cb1335f}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>
