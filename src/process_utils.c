@@ -373,6 +373,7 @@ b32 process_is_running(const char *processName)
 	processIds ids = { BB_EMPTY_INITIALIZER };
 	bba_add(ids, s_numProcessesNeeded);
 	if(ids.data) {
+		DWORD selfProcessId = GetCurrentProcessId();
 		DWORD bytesUsed = 0;
 		u32 bytesNeeded = ids.count * sizeof(DWORD);
 		if(EnumProcesses(ids.data, bytesNeeded, &bytesUsed)) {
@@ -380,14 +381,17 @@ b32 process_is_running(const char *processName)
 			for(u32 i = 0; i < bytesUsed / sizeof(DWORD); ++i) {
 				HANDLE hProcess = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, FALSE, ids.data[i]);
 				if(hProcess) {
-					HMODULE hModule;
-					DWORD unused;
-					if(EnumProcessModules(hProcess, &hModule, sizeof(hModule), &unused)) {
-						if(GetModuleBaseNameA(hProcess, hModule, moduleName, sizeof(moduleName))) {
-							if(!bb_stricmp(processName, moduleName)) {
-								CloseHandle(hProcess);
-								ret = true;
-								break;
+					DWORD processId = GetProcessId(hProcess);
+					if(processId != selfProcessId) {
+						HMODULE hModule;
+						DWORD unused;
+						if(EnumProcessModules(hProcess, &hModule, sizeof(hModule), &unused)) {
+							if(GetModuleBaseNameA(hProcess, hModule, moduleName, sizeof(moduleName))) {
+								if(!bb_stricmp(processName, moduleName)) {
+									CloseHandle(hProcess);
+									ret = true;
+									break;
+								}
 							}
 						}
 					}
@@ -414,10 +418,10 @@ b32 process_terminate(const char *processName, u32 exitCode)
 			for(u32 i = 0; i < bytesUsed / sizeof(DWORD); ++i) {
 				HANDLE hProcess = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ | PROCESS_TERMINATE, FALSE, ids.data[i]);
 				if(hProcess) {
-					HMODULE hModule;
-					DWORD unused;
 					DWORD processId = GetProcessId(hProcess);
 					if(processId != selfProcessId) {
+						HMODULE hModule;
+						DWORD unused;
 						if(EnumProcessModules(hProcess, &hModule, sizeof(hModule), &unused)) {
 							if(GetModuleBaseNameA(hProcess, hModule, moduleName, sizeof(moduleName))) {
 								if(!bb_stricmp(processName, moduleName)) {
