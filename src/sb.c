@@ -92,7 +92,7 @@ b32 sb_reserve_from_loc(const char *file, int line, sb_t *sb, u32 len)
 		bba_add_noclear_from_loc(file, line, tmp, len);
 		if(tmp.data) {
 			if(sb->count) {
-				memcpy(tmp.data, sb->data, (u64)sb->count + 1);
+				memcpy(tmp.data, sb->data, (u64)sb->count);
 			} else {
 				*tmp.data = '\0';
 			}
