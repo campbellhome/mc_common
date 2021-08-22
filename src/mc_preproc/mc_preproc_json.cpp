@@ -48,6 +48,16 @@ static void GenerateJsonHeader(const char *prefix, const char *srcDir)
 	for(const enum_s &o : g_enums) {
 		va(s, "JSON_Value *json_serialize_%s(const %s src);\n", o.name.c_str(), o.name.c_str());
 	}
+	va(s, "\n");
+	va(s, "\n");
+	for(const enum_s &o : g_enums) {
+		va(s, "%s %s_from_string(const char *src);\n", o.name.c_str(), o.name.c_str());
+	}
+	va(s, "\n");
+	for(const enum_s &o : g_enums) {
+		va(s, "const char *string_from_%s(const %s src);\n", o.name.c_str(), o.name.c_str());
+	}
+	va(s, "\n");
 	va(s, "#if defined(__cplusplus)\n");
 	va(s, "} // extern \"C\"\n");
 	va(s, "#endif\n");
@@ -311,6 +321,39 @@ static void GenerateJsonSource(const char *prefix, const char *includePrefix, co
 		va(s, "\t}\n");
 		va(s, "\tJSON_Value *val = json_value_init_string(str);\n");
 		va(s, "\treturn val;\n");
+		va(s, "}\n");
+		va(s, "\n");
+	}
+	va(s, "//////////////////////////////////////////////////////////////////////////\n");
+	va(s, "\n");
+	for(const enum_s &o : g_enums) {
+		if(o.headerOnly)
+			continue;
+		va(s, "%s %s_from_string(const char *src)\n", o.name.c_str(), o.name.c_str());
+		va(s, "{\n");
+		va(s, "\t%s dst = %s;\n", o.name.c_str(), o.defaultVal.c_str());
+		va(s, "\tif(src) {\n");
+		for(const enum_member_s &m : o.members) {
+			va(s, "\t\tif(!strcmp(src, \"%s\")) { dst = %s; }\n", m.name.c_str(), m.name.c_str());
+		}
+		va(s, "\t}\n");
+		va(s, "\treturn dst;\n");
+		va(s, "}\n");
+		va(s, "\n");
+	}
+	va(s, "//////////////////////////////////////////////////////////////////////////\n");
+	va(s, "\n");
+	for(const enum_s &o : g_enums) {
+		if(o.headerOnly)
+			continue;
+		va(s, "const char *string_from_%s(const %s src)\n", o.name.c_str(), o.name.c_str());
+		va(s, "{\n");
+		va(s, "\tswitch(src) {\n");
+		for(const enum_member_s &m : o.members) {
+			va(s, "\t\tcase %s: return \"%s\"; break;\n", m.name.c_str(), m.name.c_str());
+		}
+		va(s, "\t}\n");
+		va(s, "\treturn \"\";\n");
 		va(s, "}\n");
 		va(s, "\n");
 	}

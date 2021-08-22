@@ -63,3 +63,34 @@ int span_ends_with(span_t span, const char *str, span_case_e spanCase)
 	const char *spanStart = span.start + (spanLen - strLen);
 	return (spanLen >= strLen && (spanCase == kSpanCaseSensitive ? !strncmp(spanStart, str, strLen) : !bb_strnicmp(spanStart, str, strLen)));
 }
+
+int span_is_empty(span_t span)
+{
+	return span.start >= span.end || span.start == NULL;
+}
+
+char span_peek(span_t span)
+{
+	if(span.start == NULL) {
+		return '\0';
+	} else {
+		return *span.start;
+	}
+}
+
+span_t span_pop_front(span_t span)
+{
+	span_t out = { span.start + 1, span.end };
+	if(span_is_empty(out) && out.start != out.end) {
+		out.start = out.end = NULL;
+	}
+	return out;
+}
+
+u64 span_length(span_t span)
+{
+	if(span_is_empty(span)) {
+		return 0;
+	}
+	return span.end - span.start;
+}
