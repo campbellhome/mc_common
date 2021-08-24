@@ -81,7 +81,7 @@ char span_peek(span_t span)
 span_t span_pop_front(span_t span)
 {
 	span_t out = { span.start + 1, span.end };
-	if(span_is_empty(out) && out.start != out.end) {
+	if((out.start >= out.end || out.start == NULL) && out.start != out.end) {
 		out.start = out.end = NULL;
 	}
 	return out;
@@ -89,7 +89,7 @@ span_t span_pop_front(span_t span)
 
 u64 span_length(span_t span)
 {
-	if(span_is_empty(span)) {
+	if(span.start >= span.end || span.start == NULL) {
 		return 0;
 	}
 	return span.end - span.start;
